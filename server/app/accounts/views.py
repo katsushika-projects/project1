@@ -129,10 +129,9 @@ class UserViewSet(djoser_views.UserViewSet):
         serializer.is_valid(raise_exception=True)
 
         user_items = Item.objects.filter(Q(seller=instance) | Q(buyer=instance)).distinct()
-        if not User.objects.get(email="deleted@example.com"):
+        if not User.objects.filter(email="deleted@example.com").exists():
             User.objects.create_user(email="deleted@example.com", password="deleted_user_password")
         deleted_user = User.objects.get(email="deleted@example.com")
-        print(deleted_user)
         for user_item in user_items:
             if user_item.listing_status == Item.ListingStatus.PURCHASED:
                 raise ValidationError(
