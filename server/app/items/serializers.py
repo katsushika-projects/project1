@@ -1,6 +1,8 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
+from rest_framework.exceptions import ValidationError
 
-from .models import Image, Item
+from .models import Image, Item, Report
 
 # from PIL import Image as PILImage
 # import io
@@ -155,3 +157,31 @@ class ItemCreateSerializer(serializers.ModelSerializer):
             existing_images.delete()
             for image in images_data:
                 Image.objects.update_or_create(parent_item=item, **image)
+
+
+class ItemReportSerializer(serializers.ModelSerializer):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(ItemReportSerializer, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = Report
+        fields = ["reason"]
+        read_only_fields = ["id", "created_at", "reporter_id", "item_id"]
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Report.objects.all(),
+                fields=['item_id', 'reporter_id']
+            )
+        ]
+
+    def get_item_id(self, obj):
+        item_id = self.context.get("item_id")
+        item = Item.objects.get(id=item_id)
+        if not item:
+            raise ValidationError(detail="商品が存在しません。")
+        return item
+
+    def get_reporter_id(self, obj):
+        reporter = self.request.user
+        return reporter

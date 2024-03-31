@@ -13,6 +13,7 @@ urlpatterns = [
     path("<uuid:pk>/relisting/", views.ItemReListingView.as_view()),
     path("<uuid:pk>/complete/", views.ItemCompleteView.as_view()),
     path("<uuid:pk>/like-toggle/", views.ItemLikeToggleView.as_view()),
+    path("<uuid:pk>/report/", views.ReportAPIView.as_view()),
     path("user/like/", views.UserLikeItemListView.as_view()),
     path("user/sell/", views.UserSellItemListView.as_view()),
     path("user/buy/", views.UserBuyItemListView.as_view()),

@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
+from accounts.models import User
 
 from campuses.models import Campus
 
@@ -82,3 +83,14 @@ class Like(models.Model):
 
     def __str__(self):
         return f"{self.user} likes {self.item}"
+
+
+class Report(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    item_id = models.ForeignKey(Item, on_delete=models.CASCADE)
+    reporter_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    reason = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["item_id", "reporter_id"], name="unique_report")]
