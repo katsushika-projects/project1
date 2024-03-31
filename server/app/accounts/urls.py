@@ -1,10 +1,16 @@
-# from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from django.contrib.auth import get_user_model
 
-from django.urls import path
+from .views import JWTokenObtainView, JWTokenRefreshView, LogoutView, UserListAPIView, UserViewSet
 
-from .views import JWTokenObtainView, JWTokenRefreshView, LogoutView, UserListAPIView
 
+router = DefaultRouter()
+router.register("users", UserViewSet)
+User = get_user_model()
 urlpatterns = [
+    path("auth/", include(router.urls)),
+    path("auth/", include("djoser.urls")),
     path("users/", UserListAPIView.as_view()),
     path("auth/jwt/create/", JWTokenObtainView.as_view(), name="login"),
     path("auth/jwt/refresh/", JWTokenRefreshView.as_view()),
