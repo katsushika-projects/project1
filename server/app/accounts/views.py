@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.middleware.csrf import get_token
 from django.db.models import Q
 from rest_framework import permissions, status
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt import exceptions, views
@@ -14,6 +14,7 @@ from items.models import Item
 from transaction_messages.models import Message
 from .authentication import CookieJWTAuthentication
 from .serializers import UserSerializer
+from .models import Block
 
 User = get_user_model()
 
@@ -120,6 +121,42 @@ def get_csrf_token(request):
     # CSRFトークンをHTTPOnlyのクッキーにセット
     response.set_cookie("csrftoken", csrf_token, httponly=True)
     return response
+
+
+class UserDetailAPIView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    def get(self, request, *args, **kwargs):
+        user_id = kwargs.get("pk")
+        if not User.objects.filter(id=user_id).exists():
+            raise ValidationError(detail="ユーザーが存在しません")
+        instance = User.objects.get(id=user_id)
+        serializer = UserSerializer(instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserBlockAPIView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    def post(self, request, *args, **kwargs):
+        user_id = kwargs.get("pk")
+        if not User.objects.filter(id=user_id).exists():
+            raise ValidationError(detail="ユーザーが存在しません")
+        instance = User.objects.get(id=user_id)
+        if instance == self.request.user:
+            raise ValidationError(detail="自分自身をブロックすることはできません")
+        if Block.objects.filter(user=self.request.user, blocked_user=instance).exists():
+            raise ValidationError(detail="既にブロックしています")
+        Block.objects.create(user=self.request.user, blocked_user=instance)
+        return Response(status=status.HTTP_201_CREATED)
+
+    def delete(self, request, *args, **kwargs):
+        user_id = kwargs.get("pk")
+        if not User.objects.filter(id=user_id).exists():
+            raise ValidationError(detail="ユーザーが存在しません")
+        instance = User.objects.get(id=user_id)
+        if not Block.objects.filter(user=self.request.user, blocked_user=instance).exists():
+            raise ValidationError(detail="ブロックしていません")
+        Block.objects.filter(user=self.request.user, blocked_user=instance).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UserViewSet(djoser_views.UserViewSet):

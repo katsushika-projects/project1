@@ -12,6 +12,7 @@ from notifications.models import Notification
 
 from .models import Item, Like, Report
 from .serializers import ItemCreateSerializer, ItemReportSerializer, ItemSerializer
+from accounts.models import Block
 
 
 class ItemListPagination(PageNumberPagination):
@@ -33,7 +34,11 @@ class ItemListView(generics.ListAPIView):
             Item.ListingStatus.PURCHASED,
             Item.ListingStatus.COMPLETED,
         ]
-        queryset = queryset.filter(listing_status__in=listing_status_list)
+        exclude_user_list = []
+        blocked_user_list = Block.objects.filter(user=self.request.user).values_list("blocked_user", flat=True)
+        blocked_by_list = Block.objects.filter(blocked_user=self.request.user).values_list("user", flat=True)
+        exclude_user_list = blocked_user_list + blocked_by_list
+        queryset = queryset.filter(listing_status__in=listing_status_list).exclude(seller__in=exclude_user_list)
         # 商品名で検索
         name_query = self.request.query_params.get("name", None)
         if name_query:
