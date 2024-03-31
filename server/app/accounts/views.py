@@ -1,11 +1,17 @@
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
+from django.db.models import Q
 from rest_framework import permissions, status
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt import exceptions, views
+from djoser import views as djoser_views
+from djoser import utils
 
+from items.models import Item
+from transaction_messages.models import Message
 from .authentication import CookieJWTAuthentication
 from .serializers import UserSerializer
 
@@ -114,3 +120,36 @@ def get_csrf_token(request):
     # CSRFトークンをHTTPOnlyのクッキーにセット
     response.set_cookie("csrftoken", csrf_token, httponly=True)
     return response
+
+
+class UserViewSet(djoser_views.UserViewSet):
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user_items = Item.objects.filter(Q(seller=instance) | Q(buyer=instance)).distinct()
+        if not User.objects.get(email="deleted@example.com"):
+            User.objects.create_user(email="deleted@example.com", password="deleted_user_password")
+        deleted_user = User.objects.get(email="deleted@example.com")
+        print(deleted_user)
+        for user_item in user_items:
+            if user_item.listing_status == Item.ListingStatus.PURCHASED:
+                raise ValidationError(
+                    detail = "取引中の商品があるため、アカウントを削除できません",
+                )
+            if user_item.seller == instance:
+                user_item.delete()
+            elif user_item.buyer == instance:
+                user_item.buyer = deleted_user
+            user_item.save()
+
+        user_messages = Message.objects.filter(user=instance)
+        for user_message in user_messages:
+            user_message.user = deleted_user
+            user_message.save()
+
+        if instance == request.user:
+            utils.logout_user(self.request)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)

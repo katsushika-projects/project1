@@ -193,6 +193,7 @@ DJOSER = {
         "user_create_password_retype": "accounts.serializers.UserCreateSerializer",
         "user": "accounts.serializers.UserSerializer",
         "current_user": "accounts.serializers.UserSerializer",
+        "user_delete": "accounts.serializers.UserDeleteSerializer",
     },
     "PERMISSIONS": {
         "user": ["djoser.permissions.CurrentUserOrAdminOrReadOnly"],
