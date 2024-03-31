@@ -2,16 +2,16 @@ from fcm_django.models import FCMDevice
 from firebase_admin.messaging import Message as FCMMessage
 from firebase_admin.messaging import Notification as FCMNotification
 from rest_framework import generics, status, views
+from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.exceptions import ValidationError
 
 from notifications.models import Notification
 
 from .models import Item, Like
-from .serializers import ItemCreateSerializer, ItemSerializer, ItemReportSerializer, ItemReportSerializer
+from .serializers import ItemCreateSerializer, ItemReportSerializer, ItemSerializer
 
 
 class ItemListPagination(PageNumberPagination):
@@ -318,7 +318,7 @@ class ReportAPIView(APIView):
     # item_id, reason
     def post(self, request, *args, **kwargs):
         item_id = kwargs["pk"]
-        serializer = ItemReportSerializer(data=request.data, context={'item_id': item_id}, request=request)
+        serializer = ItemReportSerializer(data=request.data, context={"item_id": item_id}, request=request)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)

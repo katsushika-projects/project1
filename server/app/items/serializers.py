@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.exceptions import ValidationError
+from rest_framework.validators import UniqueTogetherValidator
 
 from .models import Image, Item, Report
 
@@ -161,19 +161,14 @@ class ItemCreateSerializer(serializers.ModelSerializer):
 
 class ItemReportSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
+        self.request = kwargs.pop("request", None)
         super(ItemReportSerializer, self).__init__(*args, **kwargs)
 
     class Meta:
         model = Report
         fields = ["reason"]
         read_only_fields = ["id", "created_at", "reporter_id", "item_id"]
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Report.objects.all(),
-                fields=['item_id', 'reporter_id']
-            )
-        ]
+        validators = [UniqueTogetherValidator(queryset=Report.objects.all(), fields=["item_id", "reporter_id"])]
 
     def get_item_id(self, obj):
         item_id = self.context.get("item_id")
