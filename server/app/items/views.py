@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 
 from notifications.models import Notification
 
-from .models import Item, Like
+from .models import Item, Like, Report
 from .serializers import ItemCreateSerializer, ItemReportSerializer, ItemSerializer
 
 
@@ -313,12 +313,15 @@ class UserBuyItemListView(generics.ListAPIView):
 
 
 class ReportAPIView(APIView):
-    serializer_class = ItemReportSerializer
-
-    # item_id, reason
     def post(self, request, *args, **kwargs):
         item_id = kwargs["pk"]
-        serializer = ItemReportSerializer(data=request.data, context={"item_id": item_id}, request=request)
+        item = Item.objects.get(id=item_id)
+        reporter = self.request.user
+        if not item:
+            raise ValidationError(detail="商品が存在しません。")
+        if Report.objects.filter(item_id=item, reporter_id=reporter).exists():
+            raise ValidationError(detail="既に報告済みです。")
+        serializer = ItemReportSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(item_id=item, reporter_id=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

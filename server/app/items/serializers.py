@@ -167,16 +167,4 @@ class ItemReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
         fields = ["reason"]
-        read_only_fields = ["id", "created_at", "reporter_id", "item_id"]
-        validators = [UniqueTogetherValidator(queryset=Report.objects.all(), fields=["item_id", "reporter_id"])]
-
-    def get_item_id(self, obj):
-        item_id = self.context.get("item_id")
-        item = Item.objects.get(id=item_id)
-        if not item:
-            raise ValidationError(detail="商品が存在しません。")
-        return item
-
-    def get_reporter_id(self, obj):
-        reporter = self.request.user
-        return reporter
+        read_only_fields = ["id", "created_at","reporter_id", "item_id"]
