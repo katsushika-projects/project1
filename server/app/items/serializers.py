@@ -1,6 +1,4 @@
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
-from rest_framework.validators import UniqueTogetherValidator
 
 from .models import Image, Item, Report
 
@@ -167,4 +165,4 @@ class ItemReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
         fields = ["reason"]
-        read_only_fields = ["id", "created_at","reporter_id", "item_id"]
+        read_only_fields = ["id", "created_at", "reporter_id", "item_id"]

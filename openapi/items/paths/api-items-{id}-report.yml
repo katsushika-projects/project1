@@ -1,0 +1,30 @@
+post:
+  operationId: item_report
+  summary: 通報
+  description: 商品通報API
+  tags:
+    - items
+  parameters:
+    - in: path
+      name: id
+      description: |-
+        URLには商品のIDが指定されている必要があります。
+      schema:
+        type: string
+        format: uuid
+      required: true
+  security:
+    - tokenAuth: []
+    - jwtAuth: []
+  responses:
+    "201":
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              reason: 
+                type: string
+                example: 汚れがあった
+      description: "通報成功"
+    
