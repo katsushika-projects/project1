@@ -2,6 +2,7 @@ from fcm_django.models import FCMDevice
 from firebase_admin.messaging import Message as FCMMessage
 from firebase_admin.messaging import Notification as FCMNotification
 from rest_framework import generics, status, views
+from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -9,8 +10,8 @@ from rest_framework.views import APIView
 
 from notifications.models import Notification
 
-from .models import Item, Like
-from .serializers import ItemCreateSerializer, ItemSerializer
+from .models import Item, Like, Report
+from .serializers import ItemCreateSerializer, ItemReportSerializer, ItemSerializer
 
 
 class ItemListPagination(PageNumberPagination):
@@ -309,3 +310,18 @@ class UserBuyItemListView(generics.ListAPIView):
         user = self.request.user
         buy_items = Item.objects.filter(buyer=user).select_related("buyer")
         return buy_items
+
+
+class ReportAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        item_id = kwargs["pk"]
+        item = Item.objects.get(id=item_id)
+        reporter = self.request.user
+        if not item:
+            raise ValidationError(detail="商品が存在しません。")
+        if Report.objects.filter(item_id=item, reporter_id=reporter).exists():
+            raise ValidationError(detail="既に報告済みです。")
+        serializer = ItemReportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(item_id=item, reporter_id=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

@@ -137,5 +137,8 @@ dmypy.json
 # 認証系
 server/app/credentials/
 
+#データベース
+db/
+
 # db
 server/db/*
