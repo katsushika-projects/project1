@@ -603,6 +603,8 @@ paths:
     $ref: "./items/paths/api-items-{id}-relisting.yml"
   /api/items/{id}/like-toggle/:
     $ref: "./items/paths/api-items-{id}-like-toggle.yml"
+  /api/items/{id}/report/:
+    $ref: "./items/paths/api-items-{id}-report.yml"
   /api/items/user/like/:
     $ref: "./items/paths/api-items-user-like.yml"
   /api/items/user/sell/:

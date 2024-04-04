@@ -315,10 +315,10 @@ class UserBuyItemListView(generics.ListAPIView):
 class ReportAPIView(APIView):
     def post(self, request, *args, **kwargs):
         item_id = kwargs["pk"]
+        if not Item.objects.filter(id=item_id).exists():
+            raise ValidationError(detail="商品が存在しません。")
         item = Item.objects.get(id=item_id)
         reporter = self.request.user
-        if not item:
-            raise ValidationError(detail="商品が存在しません。")
         if Report.objects.filter(item_id=item, reporter_id=reporter).exists():
             raise ValidationError(detail="既に報告済みです。")
         serializer = ItemReportSerializer(data=request.data)
