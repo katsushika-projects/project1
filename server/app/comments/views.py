@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.models import Block
 from notifications.models import Notification
 
 from .models import Comment
@@ -25,7 +26,7 @@ class CommentCreateView(generics.CreateAPIView):
         serializer.save(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=request.data, context={"request_user": self.request.user})
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
@@ -72,6 +73,9 @@ class CommentListAPIView(APIView):
         item_id = request.query_params.get("item_id", None)
         if item_id:
             comments = comments.filter(item_id=item_id)
+
+        exclude_user_list = Block.create_exclude_user_id_list_by_request_user(request.user)
+        comments = comments.exclude(user__in=exclude_user_list)
 
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)

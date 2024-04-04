@@ -1,20 +1,22 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
-from django.db.models import Q
-from rest_framework import permissions, status
-from rest_framework.generics import ListAPIView, APIView
-from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
-from rest_framework_simplejwt import exceptions, views
-from djoser import views as djoser_views
 from djoser import utils
+from djoser import views as djoser_views
+from rest_framework import permissions, status
+from rest_framework.exceptions import ValidationError
+from rest_framework.generics import ListAPIView
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt import exceptions, views
 
 from items.models import Item
 from transaction_messages.models import Message
+
 from .authentication import CookieJWTAuthentication
-from .serializers import UserSerializer
 from .models import Block
+from .serializers import UserSerializer
 
 User = get_user_model()
 
@@ -124,7 +126,8 @@ def get_csrf_token(request):
 
 
 class UserDetailAPIView(APIView):
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = [permissions.IsAuthenticated]
+
     def get(self, request, *args, **kwargs):
         user_id = kwargs.get("pk")
         if not User.objects.filter(id=user_id).exists():
@@ -134,18 +137,39 @@ class UserDetailAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class BlockedUserListAPIView(ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        blocked_user_id_list = Block.objects.filter(user=self.request.user).values_list("blocked_user", flat=True)
+        queryset = User.objects.filter(id__in=blocked_user_id_list)
+        return queryset
+
+
 class UserBlockAPIView(APIView):
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = [permissions.IsAuthenticated]
+
     def post(self, request, *args, **kwargs):
         user_id = kwargs.get("pk")
         if not User.objects.filter(id=user_id).exists():
             raise ValidationError(detail="ユーザーが存在しません")
-        instance = User.objects.get(id=user_id)
-        if instance == self.request.user:
+
+        user = User.objects.get(id=user_id)
+        if user == self.request.user:
             raise ValidationError(detail="自分自身をブロックすることはできません")
-        if Block.objects.filter(user=self.request.user, blocked_user=instance).exists():
+        if Block.objects.filter(user=self.request.user, blocked_user=user).exists():
             raise ValidationError(detail="既にブロックしています")
-        Block.objects.create(user=self.request.user, blocked_user=instance)
+        if Item.objects.filter(
+            seller=self.request.user, buyer=user, listing_status=Item.ListingStatus.PURCHASED
+        ).exists():
+            raise ValidationError(detail="取引中のユーザーはブロックできません")
+        if Item.objects.filter(
+            seller=user, buyer=self.request.user, listing_status=Item.ListingStatus.PURCHASED
+        ).exists():
+            raise ValidationError(detail="取引中のユーザーはブロックできません")
+
+        Block.objects.create(user=self.request.user, blocked_user=user)
         return Response(status=status.HTTP_201_CREATED)
 
     def delete(self, request, *args, **kwargs):
@@ -172,7 +196,7 @@ class UserViewSet(djoser_views.UserViewSet):
         for user_item in user_items:
             if user_item.listing_status == Item.ListingStatus.PURCHASED:
                 raise ValidationError(
-                    detail = "取引中の商品があるため、アカウントを削除できません",
+                    detail="取引中の商品があるため、アカウントを削除できません",
                 )
             if user_item.seller == instance:
                 user_item.delete()

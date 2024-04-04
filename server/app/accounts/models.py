@@ -64,6 +64,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         verbose_name = "ユーザー"
+        verbose_name_plural = "ユーザー"
 
     def __str__(self):
         return self.email
@@ -100,6 +101,12 @@ class Block(models.Model):
 
     class Meta:
         verbose_name = "ブロック"
+        verbose_name_plural = "ブロック"
 
     def __str__(self):
-        return self.user.email
+        return f"{self.user.email} - {self.blocked_user.email}"
+
+    def create_exclude_user_id_list_by_request_user(request_user):
+        user_list_blocked = list(Block.objects.filter(user=request_user).values_list("blocked_user", flat=True))
+        user_list_blocked_by = list(Block.objects.filter(blocked_user=request_user).values_list("user", flat=True))
+        return user_list_blocked + user_list_blocked_by

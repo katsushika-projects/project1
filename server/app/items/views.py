@@ -8,11 +8,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.models import Block
 from notifications.models import Notification
 
 from .models import Item, Like, Report
 from .serializers import ItemCreateSerializer, ItemReportSerializer, ItemSerializer
-from accounts.models import Block
 
 
 class ItemListPagination(PageNumberPagination):
@@ -22,7 +22,6 @@ class ItemListPagination(PageNumberPagination):
 
 class ItemListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-
     queryset = Item.objects.all().order_by("-updated_at")
     serializer_class = ItemSerializer
     pagination_class = ItemListPagination
@@ -34,11 +33,11 @@ class ItemListView(generics.ListAPIView):
             Item.ListingStatus.PURCHASED,
             Item.ListingStatus.COMPLETED,
         ]
-        exclude_user_list = []
-        blocked_user_list = Block.objects.filter(user=self.request.user).values_list("blocked_user", flat=True)
-        blocked_by_list = Block.objects.filter(blocked_user=self.request.user).values_list("user", flat=True)
-        exclude_user_list = blocked_user_list + blocked_by_list
+
+        exclude_user_list = Block.create_exclude_user_id_list_by_request_user(self.request.user)
+
         queryset = queryset.filter(listing_status__in=listing_status_list).exclude(seller__in=exclude_user_list)
+
         # 商品名で検索
         name_query = self.request.query_params.get("name", None)
         if name_query:
@@ -105,6 +104,15 @@ class ItemRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Item.objects.all()
     serializer_class = ItemSerializer
     permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        item = self.get_object()
+        exclude_user_id_list = Block.create_exclude_user_id_list_by_request_user(request.user)
+        if item.seller.id in exclude_user_id_list:
+            return Response({"error": "ブロック中、被ブロック中のユーザーの商品は閲覧できません。"}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(item)
+        return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
         partial = self.request.query_params.get("partial", False)
@@ -178,6 +186,10 @@ class ItemPurchaseView(generics.UpdateAPIView):
 
     def update(self, request, *args, **kwargs):
         item = self.get_object()
+
+        cannot_purchase_user_list = Block.create_exclude_user_id_list_by_request_user(self.request.user)
+        if item.seller.id in cannot_purchase_user_list:
+            return Response({"error": "ブロック中、被ブロック中のユーザーの商品は購入できません。"}, status=status.HTTP_400_BAD_REQUEST)
 
         if item.seller == request.user:
             return Response({"error": "自分自身の商品を購入することはできません。"}, status=status.HTTP_400_BAD_REQUEST)
@@ -274,6 +286,11 @@ class ItemLikeToggleView(views.APIView):
         if not Item.objects.filter(id=item_id).exists():
             return Response({"error": "商品が存在しません。"}, status=status.HTTP_400_BAD_REQUEST)
 
+        item = Item.objects.get(id=item_id)
+        exclude_user_id_list = Block.create_exclude_user_id_list_by_request_user(request.user)
+        if item.seller.id in exclude_user_id_list:
+            return Response({"error": "ブロック中、被ブロック中のユーザーの商品はいいねできません。"}, status=status.HTTP_400_BAD_REQUEST)
+
         if Like.objects.filter(item_id=item_id, user_id=user_id).exists():
             Like.objects.filter(item_id=item_id, user_id=user_id).delete()
             return Response({"message": "いいねを取り消しました。"})
@@ -290,8 +307,13 @@ class UserLikeItemListView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         queryset = Item.objects.filter(liked_by__user=user).prefetch_related("liked_by")
+
         listing_status_list = [Item.ListingStatus.UNPURCHASED, Item.ListingStatus.PURCHASED]
         queryset = queryset.filter(listing_status__in=listing_status_list)
+
+        exclude_user_list = Block.create_exclude_user_id_list_by_request_user(self.request.user)
+        queryset = queryset.exclude(seller__in=exclude_user_list)
+
         return queryset
 
 
