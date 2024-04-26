@@ -15,6 +15,7 @@ class ImageSerializer(serializers.ModelSerializer):
 
 class ItemSerializer(serializers.ModelSerializer):
     seller = serializers.ReadOnlyField(source="seller.email", default=serializers.CurrentUserDefault())
+    seller_id = serializers.ReadOnlyField(source="seller.id")
     receivable_campus = serializers.CharField(source="receivable_campus.campus")
     images = ImageSerializer(many=True)
     is_liked_by_current_user = serializers.SerializerMethodField()
@@ -22,6 +23,11 @@ class ItemSerializer(serializers.ModelSerializer):
     def get_buyer(self, obj):
         if obj.buyer:
             return obj.buyer.email
+        return None
+
+    def get_buyer_id(self, obj):
+        if obj.buyer:
+            return obj.buyer.id
         return None
 
     def get_is_liked_by_current_user(self, obj):
