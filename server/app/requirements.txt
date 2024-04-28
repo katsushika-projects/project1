@@ -27,3 +27,4 @@ social-auth-core==4.4.2; python_version >= '3.6'
 sqlparse==0.4.4; python_version >= '3.5'
 typing-extensions==4.7.1; python_version < '3.11'
 urllib3==2.0.4; python_version >= '3.7'
+django-anymail[mailgun]
