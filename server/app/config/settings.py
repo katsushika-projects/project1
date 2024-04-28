@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "djoser",
     "corsheaders",
     "fcm_django",
+    "anymail",
     # Original apps
     "accounts",
     "campuses",
@@ -156,13 +157,12 @@ SIMPLE_JWT = {
 
 # メールサーバー
 EMAIL_BACKEND = env("EMAIL_BACKEND")
-EMAIL_HOST = env("EMAIL_HOST")
-EMAIL_PORT = env("EMAIL_PORT")
-EMAIL_HOST_USER = env("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS")
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
-
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=None)
+ANYMAIL = {
+    "MAILGUN_API_KEY": env("MAILGUN_API_KEY", default=None),
+    "MAILGUN_SENDER_DOMAIN": env("MAILGUN_SENDER_DOMAIN", default=None),
+}
+SERVER_EMAIL = env("SERVER_EMAIL", default=None)
 
 DJOSER = {
     # メールアドレスでログイン
