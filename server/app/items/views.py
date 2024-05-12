@@ -67,7 +67,7 @@ class ItemCreateAPIView(APIView):
         # キーが辞書に存在しないときエラーを返す
         for key in keys_to_check:
             if key not in data:
-                return Response({"error": f"{key} が必要です"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": f"{key} が必要です"}, status=status.HTTP_400_BAD_REQUEST)
 
         data["seller"] = request.user.id
         data["listing_status"] = Item.ListingStatus.UNPURCHASED
@@ -79,7 +79,7 @@ class ItemCreateAPIView(APIView):
         data["receivable_campus"] = data["receivable_campus"][0]
 
         if "image_1" not in data:
-            return Response({"error": "写真が必須です。"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "写真が必須です。"}, status=status.HTTP_400_BAD_REQUEST)
         data["images"] = []
         data["images"].append({"photo_path": data.pop("image_1")[0], "order": 1})
         # 10枚まで登録できるようにする
@@ -109,7 +109,7 @@ class ItemRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         item = self.get_object()
         exclude_user_id_list = Block.create_exclude_user_id_list_by_request_user(request.user)
         if item.seller.id in exclude_user_id_list:
-            return Response({"error": "ブロック中、被ブロック中のユーザーの商品は閲覧できません。"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "ブロック中、被ブロック中のユーザーの商品は閲覧できません。"}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer(item)
         return Response(serializer.data)
@@ -121,9 +121,9 @@ class ItemRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         print("keywargs: ", kwargs)
 
         if instance.listing_status == Item.ListingStatus.PURCHASED:
-            return Response({"error": "購入された商品は編集できません。"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "購入された商品は編集できません。"}, status=status.HTTP_400_BAD_REQUEST)
         if instance.listing_status == Item.ListingStatus.COMPLETED:
-            return Response({"error": "売り切れた商品は編集できません。"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "売り切れた商品は編集できません。"}, status=status.HTTP_400_BAD_REQUEST)
 
         # request.dataを変更可能な辞書にコピー
         data = dict(request.data.lists())
@@ -142,7 +142,7 @@ class ItemRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
                 if partial:
                     continue
                 else:
-                    return Response({"error": f"{key} が必要です"}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"detail": f"{key} が必要です"}, status=status.HTTP_400_BAD_REQUEST)
             data[key] = data[key][0]
 
         data["seller"] = request.user.id
@@ -159,7 +159,7 @@ class ItemRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         # partial == False のとき
         else:
             if "image_1" not in data:
-                return Response({"error": "写真が必須です。"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": "写真が必須です。"}, status=status.HTTP_400_BAD_REQUEST)
             data["images"] = []
             data["images"].append({"photo_path": data.pop("image_1")[0], "order": 1})
             # 10枚まで登録できるようにする
@@ -189,10 +189,10 @@ class ItemPurchaseView(generics.UpdateAPIView):
 
         cannot_purchase_user_list = Block.create_exclude_user_id_list_by_request_user(self.request.user)
         if item.seller.id in cannot_purchase_user_list:
-            return Response({"error": "ブロック中、被ブロック中のユーザーの商品は購入できません。"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "ブロック中、被ブロック中のユーザーの商品は購入できません。"}, status=status.HTTP_400_BAD_REQUEST)
 
         if item.seller == request.user:
-            return Response({"error": "自分自身の商品を購入することはできません。"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "自分自身の商品を購入することはできません。"}, status=status.HTTP_400_BAD_REQUEST)
 
         item.buyer = request.user
         item.listing_status = Item.ListingStatus.PURCHASED
@@ -228,9 +228,9 @@ class ItemCancelView(generics.UpdateAPIView):
         item = self.get_object()
 
         if item.buyer is not None:
-            return Response({"error": "購入された商品はキャンセルできません。"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "購入された商品はキャンセルできません。"}, status=status.HTTP_400_BAD_REQUEST)
         if item.seller != request.user:
-            return Response({"error": "あなたの出品物ではありません。"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "あなたの出品物ではありません。"}, status=status.HTTP_400_BAD_REQUEST)
         item.listing_status = Item.ListingStatus.CANCELED
         item.save()
 
@@ -247,9 +247,9 @@ class ItemReListingView(generics.UpdateAPIView):
         item = self.get_object()
 
         if item.seller != request.user:
-            return Response({"error": "あなたの出品物ではありません。"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "あなたの出品物ではありません。"}, status=status.HTTP_400_BAD_REQUEST)
         if item.listing_status != Item.ListingStatus.CANCELED:
-            return Response({"error": "キャンセルされた商品以外は再出品できません。"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "キャンセルされた商品以外は再出品できません。"}, status=status.HTTP_400_BAD_REQUEST)
         item.listing_status = Item.ListingStatus.UNPURCHASED
         item.save()
 
@@ -267,7 +267,7 @@ class ItemCompleteView(generics.UpdateAPIView):
         item = self.get_object()
 
         if item.buyer != request.user:
-            return Response({"error": "購入者以外は購入完了できません。"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "購入者以外は購入完了できません。"}, status=status.HTTP_400_BAD_REQUEST)
 
         item.listing_status = Item.ListingStatus.COMPLETED
         item.save()
@@ -284,12 +284,12 @@ class ItemLikeToggleView(views.APIView):
         user_id = request.user.id
 
         if not Item.objects.filter(id=item_id).exists():
-            return Response({"error": "商品が存在しません。"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "商品が存在しません。"}, status=status.HTTP_400_BAD_REQUEST)
 
         item = Item.objects.get(id=item_id)
         exclude_user_id_list = Block.create_exclude_user_id_list_by_request_user(request.user)
         if item.seller.id in exclude_user_id_list:
-            return Response({"error": "ブロック中、被ブロック中のユーザーの商品はいいねできません。"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "ブロック中、被ブロック中のユーザーの商品はいいねできません。"}, status=status.HTTP_400_BAD_REQUEST)
 
         if Like.objects.filter(item_id=item_id, user_id=user_id).exists():
             Like.objects.filter(item_id=item_id, user_id=user_id).delete()

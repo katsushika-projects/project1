@@ -63,7 +63,7 @@ class JWTokenRefreshView(views.TokenRefreshView):
         # cookieからリフレッシュトークンを取得
         refresh_token = request.COOKIES.get("refresh_token")
         if refresh_token is None:
-            return Response({"error": "No refresh"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "No refresh"}, status=status.HTTP_400_BAD_REQUEST)
 
         # リクエストにリフレッシュトークンを含めなおす
         request_data = request.data.copy()
@@ -100,7 +100,7 @@ class LogoutView(views.TokenBlacklistView):
     def post(self, request, *args, **kwargs):
         refresh_token = request.COOKIES.get("refresh_token")
         if refresh_token is None:
-            return Response({"error": "No refresh"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "No refresh"}, status=status.HTTP_400_BAD_REQUEST)
 
         # リクエストにリフレッシュトークンを含めなおす
         request.data["refresh"] = refresh_token
