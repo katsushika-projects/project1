@@ -2,11 +2,18 @@ get:
   operationId: university_retrieve
   summary: 大学一覧取得API
   description: 大学一覧取得API
+  parameters:
+    - name: name
+      in: query
+      description: 取得したい大学の名前を指定（部分一致）
+      required: false
+      schema:
+        type: string
   tags:
     - university
-  security:
-    - tokenAuth: []
-    - jwtAuth: []
+  # security:
+  #   - tokenAuth: []
+  #   - jwtAuth: []
   responses:
     "200":
       content:

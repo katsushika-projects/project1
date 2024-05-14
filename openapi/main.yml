@@ -583,6 +583,10 @@ paths:
     $ref: "./campuses/paths/api-campus.yml"
   /api/campus/{id}/:
     $ref: "./campuses/paths/api-campus-{id}.yml"
+  /api/university/:
+    $ref: "./campuses/paths/api-university.yml"
+  /api/university/{id}/:
+    $ref: "./campuses/paths/api-university-{id}.yml"
   /api/comment/:
     $ref: "./comments/paths/api-comment.yml"
   /api/comment/create/:
@@ -621,10 +625,6 @@ paths:
     $ref: "./transaction_messages/paths/api-messages.yml"
   /api/messages/create/:
     $ref: "./transaction_messages/paths/api-messages-create.yml"
-  /api/university/:
-    $ref: "./campuses/paths/api-university.yml"
-  /api/university/{id}/:
-    $ref: "./campuses/paths/api-university-{id}.yml"
   /api/users/:
     get:
       operationId: users_list

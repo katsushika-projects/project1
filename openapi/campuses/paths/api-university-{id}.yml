@@ -2,18 +2,11 @@ get:
   operationId: university_retrieve_2
   summary: 大学詳細取得API
   description: 大学詳細取得API
-  parameters:
-    - in: path
-      name: id
-      schema:
-        type: string
-        format: uuid
-      required: true
   tags:
     - university
-  security:
-    - tokenAuth: []
-    - jwtAuth: []
+  # security:
+  #   - tokenAuth: []
+  #   - jwtAuth: []
   responses:
     "200":
       content:
