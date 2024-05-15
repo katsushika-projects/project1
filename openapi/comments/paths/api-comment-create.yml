@@ -19,3 +19,47 @@ post:
           schema:
             $ref: "../schemas/comment.yml"
       description: ""
+    400:
+      description: 失敗（優先順位上から）
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              item_id:
+                type: array
+                items:
+                  type: string
+              message:
+                type: array
+                items:
+                  type: string
+          examples:
+            Request bodyのkeyが不足:
+              value:
+                item_id:
+                  - この項目は必須です。
+                message:
+                  - この項目は必須です。
+            Request bodyの値が不足:
+              value:
+                item_id:
+                  - この項目はnullにできません。
+                message:
+                  - この項目は空にできません。
+            商品が存在しない1:
+              value:
+                item_id:
+                  - “85335b31-8e58-4b2” は有効なUUIDではありません。
+            商品が存在しない2:
+              value:
+                item_id:
+                  - '主キー "85335b31-8e58-4b2a-bd96-6e02ac43f560" は不正です - データが存在しません。'
+            未購入でない商品:
+              value:
+                item_id:
+                  - 未購入の商品にのみコメントできます
+            ブロック中/被ブロック中のユーザーの商品:
+              value:
+                item_id:
+                  - ブロック中/被ブロック中のユーザーの商品にはコメントできません
