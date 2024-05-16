@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+
 from items.models import Item
 from notifications.models import Notification
 
@@ -43,6 +44,7 @@ class CommentCreateTest(TestCase):
         self.item = Item.objects.get(pk="c1c61f36-6032-4d39-a649-6ad16ee4f00c")
         self.comment_data = {"message": "テストコメント", "item_id": self.item.id}
         self.url = reverse("comment-create")
+        self.comment_list = reverse("comment-list")
 
     def test_create_comment(self):
         """
@@ -90,3 +92,10 @@ class CommentCreateTest(TestCase):
         response = self.client.post(self.url, comment_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Notification.objects.count(), pre_notification_count + 2)
+
+    def test_comment_list(self):
+        """
+        購入前商品のコメント一覧取得APIのテスト
+        """
+        response = self.client.get(self.comment_list)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
