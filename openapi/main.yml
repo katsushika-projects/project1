@@ -668,14 +668,12 @@ paths:
           description: バリデーションエラー
           content: 
             propertyName: 
-              schema: 
-                type: array
-                items: 
-                  type: object
-                  properties: 
-                    detail: 
-                      type: string
-                      description: エラー詳細
+              schema:  
+                type: object
+                properties: 
+                  detail: 
+                    type: string
+                    description: エラー詳細
         "401":
           description: 認証エラー
     delete: 
@@ -698,13 +696,11 @@ paths:
           content: 
             propertyName: 
               schema: 
-                type: array
-                items: 
-                  type: object
-                  properties: 
-                    detail: 
-                      type: string
-                      description: エラー詳細
+                type: object
+                properties: 
+                  detail: 
+                    type: string
+                    description: エラー詳細
         "401":
           description: 認証エラー
       
