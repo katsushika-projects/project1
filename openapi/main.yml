@@ -593,7 +593,7 @@ paths:
     $ref: "./comments/paths/api-comment-create.yml"
   /api/items/:
     $ref: "./items/paths/api-items.yml"
-  /api/items/create:
+  /api/items/create/:
     $ref: "./items/paths/api-items-create.yml"
   /api/items/{id}/:
     $ref: "./items/paths/api-items-{id}.yml"

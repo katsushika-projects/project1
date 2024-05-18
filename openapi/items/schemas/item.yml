@@ -6,6 +6,9 @@ properties:
   seller:
     type: string
     example: test1@example.com
+  seller_id:
+    type: string
+    example: 1034a2ef-fbac-4805-890f-3169614d59ee
   receivable_campus:
     type: string
     example: 東京理科大学葛飾キャンパス

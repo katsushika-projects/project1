@@ -23,4 +23,10 @@ get:
             type: array
             items:
               $ref: "../schemas/campus.yml"
-      description: ""
+      description: 成功（何もない場合は空の配列[]を返す）
+    500:
+      content:
+        application/html:
+          examples:
+            クエリパラメタが不正:
+              description: クエリパラメタuniversity_idが有効なUUIDではない場合、Djangoの黄色画面のhtmlが返される

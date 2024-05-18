@@ -115,11 +115,13 @@ class ItemRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
-        partial = self.request.query_params.get("partial", False)
+        partial = self.request.query_params.get("partial", False).lower() in ['true', '1', 't']
         instance = self.get_object()
-        print("partial: ", partial)
-        print("keywargs: ", kwargs)
+        # print("partial: ", partial)
+        # print("keywargs: ", kwargs)
 
+        if instance.seller != request.user:
+            return Response({"detail": "あなたが出品した商品ではありません。"}, status=status.HTTP_400_BAD_REQUEST)
         if instance.listing_status == Item.ListingStatus.PURCHASED:
             return Response({"detail": "購入された商品は編集できません。"}, status=status.HTTP_400_BAD_REQUEST)
         if instance.listing_status == Item.ListingStatus.COMPLETED:
@@ -150,13 +152,13 @@ class ItemRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
         # 以下画像の処理
         data["images"] = []
-        # partial == True のとき
+        # partial is True のとき
         if partial:
             for i in range(1, 11):
                 if f"image_{i}" in data:
                     data["images"].append({"photo_path": data.pop(f"image_{i}")[0], "order": i})
 
-        # partial == False のとき
+        # partial is False のとき
         else:
             if "image_1" not in data:
                 return Response({"detail": "写真が必須です。"}, status=status.HTTP_400_BAD_REQUEST)
@@ -230,7 +232,7 @@ class ItemCancelView(generics.UpdateAPIView):
         if item.buyer is not None:
             return Response({"detail": "購入された商品はキャンセルできません。"}, status=status.HTTP_400_BAD_REQUEST)
         if item.seller != request.user:
-            return Response({"detail": "あなたの出品物ではありません。"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "あなたが出品した商品ではありません。"}, status=status.HTTP_400_BAD_REQUEST)
         item.listing_status = Item.ListingStatus.CANCELED
         item.save()
 
@@ -247,7 +249,7 @@ class ItemReListingView(generics.UpdateAPIView):
         item = self.get_object()
 
         if item.seller != request.user:
-            return Response({"detail": "あなたの出品物ではありません。"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "あなたが出品した商品ではありません。"}, status=status.HTTP_400_BAD_REQUEST)
         if item.listing_status != Item.ListingStatus.CANCELED:
             return Response({"detail": "キャンセルされた商品以外は再出品できません。"}, status=status.HTTP_400_BAD_REQUEST)
         item.listing_status = Item.ListingStatus.UNPURCHASED

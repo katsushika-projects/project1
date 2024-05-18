@@ -1,7 +1,7 @@
 get:
   operationId: items_list
   summary: 商品一覧取得API
-  description: 商品一覧取得API
+  description: 商品の一覧を更新日時が新しい順に20件ずつ取得するAPIです。ブロック中/被ブロック中のユーザーとキャンセル済み(canceled)の商品は除外されます。
   parameters:
     - in: query
       name: name
@@ -29,7 +29,7 @@ get:
         type: integer
       example: 2
   tags:
-    - items
+    - item
   security:
     - tokenAuth: []
     - jwtAuth: []

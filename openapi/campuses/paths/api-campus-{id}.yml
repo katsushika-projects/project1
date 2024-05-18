@@ -1,7 +1,15 @@
 get:
   operationId: campus_retrieve
   summary: キャンパス詳細取得API
-  description: キャンパスの詳細を取得するためのAPIです。
+  description: 指定したキャンパスの詳細を取得するためのAPIです。
+  parameters:
+    - neme: id
+      in: path
+      description: 取得したいキャンパスのidを指定
+      required: true
+      schema:
+        type: string
+        format: uuid
   tags:
     - campus
   security:
@@ -14,3 +22,15 @@ get:
           schema:
             $ref: "../schemas/campus.yml"
       description: ""
+    404:
+      content:
+        application/json:
+          examples:
+            パスパラメタが不正1:
+              description: パスパラメタのidに該当するキャンパスが存在しない場合
+              value:
+                detail: 見つかりませんでした。
+        application/html:
+          examples:
+            パスパラメタが不正2:
+              description: パスパラメタidが有効なUUIDではない場合、Djangoの黄色画面のhtmlが返される

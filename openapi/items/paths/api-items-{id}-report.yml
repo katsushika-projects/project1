@@ -3,7 +3,7 @@ post:
   summary: 通報
   description: 商品通報API
   tags:
-    - items
+    - item
   parameters:
     - in: path
       name: id
@@ -23,8 +23,7 @@ post:
           schema:
             type: object
             properties:
-              reason: 
+              reason:
                 type: string
                 example: 汚れがあった
       description: "通報成功"
-    

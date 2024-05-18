@@ -11,7 +11,7 @@ patch:
         format: uuid
       required: true
   tags:
-    - items
+    - item
   security:
     - tokenAuth: []
     - jwtAuth: []
