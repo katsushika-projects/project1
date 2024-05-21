@@ -29,8 +29,8 @@ class BlockTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(email="blocked@blocked.com", password="blockedpassword")
         self.request_user = User.objects.create_user(email="block@block.com", password="blockpassword")
-        self.block_user = reverse("block-user", kwargs={"pk": self.user.id})
-        self.block_list = reverse("block-list")
+        self.block_user_url = reverse("block-user", kwargs={"pk": self.user.id})
+        self.block_list_url = reverse("block-list")
         self.request_user.is_active = True
         self.request_user.save()
         self.login_url = reverse("login")
@@ -38,14 +38,14 @@ class BlockTest(APITestCase):
         self.client.post(self.login_url, self.data, format="json")
 
     def test_post_block_user(self):
-        response = self.client.post(self.block_user)
+        response = self.client.post(self.block_user_url)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_delete_block_user(self):
         self.block = Block.objects.create(user=self.request_user, blocked_user=self.user)
-        response = self.client.delete(self.block_user)
+        response = self.client.delete(self.block_user_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_get_block_list(self):
-        response = self.client.get(self.block_list)
+        response = self.client.get(self.block_list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
