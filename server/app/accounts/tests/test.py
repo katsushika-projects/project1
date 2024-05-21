@@ -27,20 +27,24 @@ class RefreshTokenTest(APITestCase):
 
 class BlockTest(APITestCase):
     def setUp(self):
-        self.user = User.objects.create_user(email="block@block.com", password="blockpassword")
-        self.blocked_user = User.objects.create_user(email="blocked@blocked.com", password="blockedpssword")
-        self.block = Block.objects.create(user=self.user, blocked_user=self.blocked_user)
-        self.block_user = reverse("block-user", kwargs={"pk": self.block.id})
+        self.user = User.objects.create_user(email="blocked@blocked.com", password="blockedpassword")
+        self.request_user = User.objects.create_user(email="block@block.com", password="blockpassword")
+        self.block_user = reverse("block-user", kwargs={"pk": self.user.id})
         self.block_list = reverse("block-list")
+        self.request_user.is_active = True
+        self.request_user.save()
         self.login_url = reverse("login")
-        self.user.is_active = True
-        self.user.save()
-        self.data = {"email": self.user.email, "password": "blockpassword"}
+        self.data = {"email": self.request_user.email, "password": "blockpassword"}
         self.client.post(self.login_url, self.data, format="json")
 
-    def test_get_block_user(self):
+    def test_post_block_user(self):
         response = self.client.post(self.block_user)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_delete_block_user(self):
+        self.block = Block.objects.create(user=self.request_user, blocked_user=self.user)
+        response = self.client.delete(self.block_user)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_get_block_list(self):
         response = self.client.get(self.block_list)
