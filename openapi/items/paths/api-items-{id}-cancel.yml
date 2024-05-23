@@ -1,6 +1,9 @@
 patch:
   operationId: items_cancel_partial_update
   summary: 出品キャンセルAPI
+  description: |-
+    出品中の商品をキャンセルするAPIです。<br>
+    buyerをnullに、listing_statusをcanceledに更新します。
   parameters:
     - in: path
       name: id
@@ -22,3 +25,26 @@ patch:
           schema:
             $ref: "../schemas/item.yml"
       description: ""
+    400:
+      description: 失敗（優先順位 Examplesの順）
+      content:
+        application/json:
+          examples:
+            取引完了した/キャンセル済みの商品:
+              value:
+                detail: 取引完了した商品とキャンセル済みの商品はキャンセルできません。
+            ログインユーザーが出品/購入した商品でない:
+              value:
+                detail: あなたが出品した商品でも購入した商品でもありません。
+    404:
+      content:
+        application/json:
+          examples:
+            パスパラメタが不正1:
+              description: パスパラメタのidに該当する商品が存在しない場合
+              value:
+                detail: 見つかりませんでした。
+        application/html:
+          examples:
+            パスパラメタが不正2:
+              description: パスパラメタidが有効なUUIDではない場合、Djangoの黄色画面のhtmlが返される

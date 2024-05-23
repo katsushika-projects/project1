@@ -62,7 +62,7 @@ patch:
       schema:
         type: string
       description: |
-        True or Falseで指定して下さい。（一応 true も 1 も t も許容します）<br>
+        True or Falseで指定して下さい。（一応 true も 1 も T も t も許容します）<br>
         デフォルトはFalseです。 <br>
         Trueの場合、商品情報の一部のみを更新します。Falseの場合、商品情報を全て更新します。
   tags:
@@ -82,7 +82,7 @@ patch:
               format: binary
               description: |
                 image_1, image_2, ...,image_10のうち、必要な数だけ送信してください。<br>
-              # partialのimages周りの不備を修正したら、説明を追記
+              #TODO:partialのimages周りの不備を修正したら、説明を追記
             price:
               type: integer
             name:
@@ -110,15 +110,15 @@ patch:
       content:
         application/json:
           examples:
+            購入済みの商品:
+              value:
+                detail: 購入済みの商品は編集できません。
+            既に取引完了している商品:
+              value:
+                detail: 取引完了した商品は編集できません。
             ログインユーザーが出品した商品でない:
               value:
                 detail: あなたが出品した商品ではありません。
-            購入済みの商品:
-              value:
-                detail: 購入された商品は編集できません。
-            既に取引完了している商品:
-              value:
-                detail: 売り切れた商品は編集できません。
             keyが不足2:
               description: |
                 partialがFalseの場合のみ<br>
@@ -207,4 +207,23 @@ delete:
     - jwtAuth: []
   responses:
     "204":
-      description: No response body
+      description: No response body(成功)
+    400:
+      content:
+        application/json:
+          examples:
+            ログインユーザーが出品した商品でない:
+              value:
+                detail: あなたが出品した商品ではありません。
+    404:
+      content:
+        application/json:
+          examples:
+            パスパラメタが不正1:
+              description: パスパラメタのidに該当する商品が存在しない場合
+              value:
+                detail: 見つかりませんでした。
+        application/html:
+          examples:
+            パスパラメタが不正2:
+              description: パスパラメタidが有効なUUIDではない場合、Djangoの黄色画面のhtmlが返される

@@ -2,7 +2,7 @@ from fcm_django.models import FCMDevice
 from firebase_admin.messaging import Message as FCMMessage
 from firebase_admin.messaging import Notification as FCMNotification
 from rest_framework import generics, status, views
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ParseError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -120,12 +120,12 @@ class ItemRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         # print("partial: ", partial)
         # print("keywargs: ", kwargs)
 
+        if instance.listing_status == Item.ListingStatus.PURCHASED:
+            return Response({"detail": "購入済みの商品は編集できません。"}, status=status.HTTP_400_BAD_REQUEST)
+        if instance.listing_status == Item.ListingStatus.COMPLETED:
+            return Response({"detail": "取引完了した商品は編集できません。"}, status=status.HTTP_400_BAD_REQUEST)
         if instance.seller != request.user:
             return Response({"detail": "あなたが出品した商品ではありません。"}, status=status.HTTP_400_BAD_REQUEST)
-        if instance.listing_status == Item.ListingStatus.PURCHASED:
-            return Response({"detail": "購入された商品は編集できません。"}, status=status.HTTP_400_BAD_REQUEST)
-        if instance.listing_status == Item.ListingStatus.COMPLETED:
-            return Response({"detail": "売り切れた商品は編集できません。"}, status=status.HTTP_400_BAD_REQUEST)
 
         # request.dataを変更可能な辞書にコピー
         data = dict(request.data.lists())
@@ -152,13 +152,13 @@ class ItemRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
         # 以下画像の処理
         data["images"] = []
-        # partial is True のとき
+        # partial=Trueのとき
         if partial:
             for i in range(1, 11):
                 if f"image_{i}" in data:
                     data["images"].append({"photo_path": data.pop(f"image_{i}")[0], "order": i})
 
-        # partial is False のとき
+        # partial=Falseのとき
         else:
             if "image_1" not in data:
                 return Response({"detail": "写真が必須です。"}, status=status.HTTP_400_BAD_REQUEST)
@@ -178,6 +178,13 @@ class ItemRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         updated_item = self.get_object()
         response_serializer = ItemSerializer(updated_item, context={"request": request})
         return Response(response_serializer.data, status=status.HTTP_200_OK)
+    
+    def destroy(self, request, *args, **kwargs):
+        item = self.get_object()
+        if item.seller != request.user:
+            return Response({"detail": "あなたが出品した商品ではありません。"}, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_destroy(item)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ItemPurchaseView(generics.UpdateAPIView):
@@ -192,7 +199,8 @@ class ItemPurchaseView(generics.UpdateAPIView):
         cannot_purchase_user_list = Block.create_exclude_user_id_list_by_request_user(self.request.user)
         if item.seller.id in cannot_purchase_user_list:
             return Response({"detail": "ブロック中、被ブロック中のユーザーの商品は購入できません。"}, status=status.HTTP_400_BAD_REQUEST)
-
+        if item.listing_status != Item.ListingStatus.UNPURCHASED:
+            return Response({"detail": "未購入の商品のみ購入できます。"}, status=status.HTTP_400_BAD_REQUEST)
         if item.seller == request.user:
             return Response({"detail": "自分自身の商品を購入することはできません。"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -229,10 +237,12 @@ class ItemCancelView(generics.UpdateAPIView):
     def update(self, request, *args, **kwargs):
         item = self.get_object()
 
-        if item.buyer is not None:
-            return Response({"detail": "購入された商品はキャンセルできません。"}, status=status.HTTP_400_BAD_REQUEST)
-        if item.seller != request.user:
-            return Response({"detail": "あなたが出品した商品ではありません。"}, status=status.HTTP_400_BAD_REQUEST)
+        if item.listing_status not in [Item.ListingStatus.UNPURCHASED, Item.ListingStatus.PURCHASED]:
+            return Response({"detail": "取引完了した商品とキャンセル済みの商品はキャンセルできません。"}, status=status.HTTP_400_BAD_REQUEST)
+        if item.seller != request.user and item.buyer != request.user:
+            return Response({"detail": "あなたが出品した商品でも購入した商品でもありません。"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        item.buyer = None
         item.listing_status = Item.ListingStatus.CANCELED
         item.save()
 
@@ -248,10 +258,11 @@ class ItemReListingView(generics.UpdateAPIView):
     def update(self, request, *args, **kwargs):
         item = self.get_object()
 
-        if item.seller != request.user:
-            return Response({"detail": "あなたが出品した商品ではありません。"}, status=status.HTTP_400_BAD_REQUEST)
         if item.listing_status != Item.ListingStatus.CANCELED:
             return Response({"detail": "キャンセルされた商品以外は再出品できません。"}, status=status.HTTP_400_BAD_REQUEST)
+        if item.seller != request.user:
+            return Response({"detail": "あなたが出品した商品ではありません。"}, status=status.HTTP_400_BAD_REQUEST)
+        
         item.listing_status = Item.ListingStatus.UNPURCHASED
         item.save()
 
@@ -261,13 +272,14 @@ class ItemReListingView(generics.UpdateAPIView):
 
 class ItemCompleteView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
-
     queryset = Item.objects.all()
     serializer_class = ItemSerializer
 
     def update(self, request, *args, **kwargs):
         item = self.get_object()
 
+        if item.listing_status != Item.ListingStatus.PURCHASED:
+            return Response({"detail": "購入済みの商品以外は取引完了できません。"}, status=status.HTTP_400_BAD_REQUEST)
         if item.buyer != request.user:
             return Response({"detail": "購入者以外は購入完了できません。"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -295,10 +307,10 @@ class ItemLikeToggleView(views.APIView):
 
         if Like.objects.filter(item_id=item_id, user_id=user_id).exists():
             Like.objects.filter(item_id=item_id, user_id=user_id).delete()
-            return Response({"message": "いいねを取り消しました。"})
+            return Response({"is_liked_by_current_user": False})
         else:
             Like.objects.create(item_id=item_id, user_id=user_id)
-            return Response({"message": "いいねしました。"})
+            return Response({"is_liked_by_current_user": True})
 
 
 class UserLikeItemListView(generics.ListAPIView):
@@ -345,11 +357,11 @@ class ReportAPIView(APIView):
     def post(self, request, *args, **kwargs):
         item_id = kwargs["pk"]
         if not Item.objects.filter(id=item_id).exists():
-            raise ValidationError(detail="商品が存在しません。")
+            raise ParseError(detail="商品が存在しません。")
         item = Item.objects.get(id=item_id)
         reporter = self.request.user
         if Report.objects.filter(item_id=item, reporter_id=reporter).exists():
-            raise ValidationError(detail="既に報告済みです。")
+            raise ParseError(detail="既に報告済みです。")
         serializer = ItemReportSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(item_id=item, reporter_id=request.user)

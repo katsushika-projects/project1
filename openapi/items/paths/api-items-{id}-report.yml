@@ -27,3 +27,32 @@ post:
                 type: string
                 example: 汚れがあった
       description: "通報成功"
+    400:
+      description: 失敗（優先順位 Examplesの順）
+      content:
+        application/json:
+          examples:
+            keyが不足:
+              value:
+                reason:
+                  - この項目は必須です。
+            値が不足:
+              value:
+                reason:
+                  - この項目は空にできません。
+            値が不正:
+              value:
+                reason:
+                  - この項目が255文字より長くならないようにしてください。
+            存在しない商品:
+              value:
+                detail: 商品が存在しません。
+            既に報告済み:
+              value:
+                detail: 既に報告済みです。
+    404:
+      content:
+        application/html:
+          examples:
+            パスパラメタが不正:
+              description: パスパラメタidが有効なUUIDではない場合、Djangoの黄色画面のhtmlが返される
