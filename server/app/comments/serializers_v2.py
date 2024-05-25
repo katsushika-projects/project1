@@ -36,8 +36,8 @@ class CommentSerializer(serializers.ModelSerializer):
         request_user = self.context.get("request_user")
         exclude_user_id_list = Block.create_exclude_user_id_list_by_request_user(request_user)
         item = Item.objects.filter(id=value.id).select_related("seller").first()
-        if not item:
-            raise serializers.ValidationError("商品が存在しません")
+        # if not item:
+        #     raise serializers.ValidationError("商品が存在しません")
         if item.listing_status != Item.ListingStatus.UNPURCHASED:
             raise serializers.ValidationError("未購入の商品にのみコメントできます")
         if item.seller.id in exclude_user_id_list:

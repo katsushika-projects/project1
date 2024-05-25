@@ -31,7 +31,7 @@ class UpdateNotificationImportanceView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
+    def patch(self, request, *args, **kwargs):
         """
         Update notification
         """

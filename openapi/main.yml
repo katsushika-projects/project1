@@ -1,15 +1,15 @@
 openapi: 3.0.3
 info:
   title: 教科書・参考書取引所 OpenAPI
-  version: 1.0.0
+  version: 2.0.0
   description: 教科書・参考書取引所 OpenAPI Schema
 servers:
-  - url: http://localhost:8000
+  - url: http://localhost:8000/api/v2
     description: 開発用サーバー
-  - url: https://api.uni-bo.net
+  - url: https://api.uni-bo.net/api/v2
     description: 本番用サーバー
 paths:
-  /api/auth/jwt/create/:
+  /auth/jwt/create/:
     post:
       summary: ログイン(jwt取得)
       operationId: auth_jwt_create_create
@@ -45,7 +45,7 @@ paths:
                 存在しないemail or パスワードが正しくない:
                   value:
                     detail: No active account found with the given credentials
-  /api/auth/jwt/refresh/:
+  /auth/jwt/refresh/:
     post:
       summary: リフレッシュ(アクセストークン再発行)
       operationId: auth_jwt_refresh_create
@@ -67,7 +67,7 @@ paths:
             application/json:
               example:
                 detail: No refresh
-  /api/auth/logout/:
+  /auth/logout/:
     post:
       summary: ログアウト
       operationId: auth_logout_create
@@ -91,7 +91,7 @@ paths:
             application/json:
               example:
                 detail: No refresh
-  /api/auth/users/:
+  /auth/users/:
     #   get:
     #     operationId: auth_users_list
     #     parameters:
@@ -166,7 +166,7 @@ paths:
                   value:
                     - detail: メールアドレスの形式は「@ed.tus.ac.jp」です
 
-  # /api/auth/users/{id}/:
+  # /auth/users/{id}/:
   #   get:
   #     operationId: auth_users_retrieve
   #     parameters:
@@ -274,7 +274,7 @@ paths:
   #     responses:
   #       '204':
   #         description: No response body
-  /api/auth/users/activation/:
+  /auth/users/activation/:
     post:
       summary: アカウント有効化
       operationId: auth_users_activation_create
@@ -310,7 +310,7 @@ paths:
                   value:
                     token: 有効なトークンではありません。
 
-  /api/auth/users/me/:
+  /auth/users/me/:
     get:
       summary: ユーザー詳細取得API
       operationId: auth_users_me_retrieve
@@ -390,7 +390,7 @@ paths:
       responses:
         "204":
           description: No response body
-  /api/auth/users/resend_activation/:
+  /auth/users/resend_activation/:
     post:
       operationId: auth_users_resend_activation_create
       tags:
@@ -418,7 +418,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SendEmailReset"
           description: ""
-  /api/auth/users/reset_email/:
+  /auth/users/reset_email/:
     post:
       operationId: auth_users_reset_email_create
       tags:
@@ -448,7 +448,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SendEmailReset"
           description: ""
-  /api/auth/users/reset_email_confirm/:
+  /auth/users/reset_email_confirm/:
     post:
       operationId: auth_users_reset_email_confirm_create
       tags:
@@ -477,7 +477,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/UsernameResetConfirm"
           description: ""
-  /api/auth/users/reset_password/:
+  /auth/users/reset_password/:
     post:
       operationId: auth_users_reset_password_create
       description: ※現在使用していないため、正確なschema定義は未実装
@@ -506,7 +506,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SendEmailReset"
           description: ""
-  /api/auth/users/reset_password_confirm/:
+  /auth/users/reset_password_confirm/:
     post:
       operationId: auth_users_reset_password_confirm_create
       description: ※現在使用していないため、正確なschema定義は未実装
@@ -534,7 +534,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/PasswordResetConfirm"
           description: ""
-  /api/auth/users/set_email/:
+  /auth/users/set_email/:
     post:
       operationId: auth_users_set_email_create
       description: ※現在使用していないため、正確なschema定義は未実装
@@ -562,7 +562,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SetUsernameRetype"
           description: ""
-  /api/auth/users/set_password/:
+  /auth/users/set_password/:
     post:
       operationId: auth_users_set_password_create
       description: ※現在使用していないため、正確なschema定義は未実装
@@ -590,53 +590,53 @@ paths:
               schema:
                 $ref: "#/components/schemas/SetPasswordRetype"
           description: ""
-  /api/campus/:
+  /campus/:
     $ref: "./campuses/paths/api-campus.yml"
-  /api/campus/{id}/:
+  /campus/{id}/:
     $ref: "./campuses/paths/api-campus-{id}.yml"
-  /api/university/:
+  /university/:
     $ref: "./campuses/paths/api-university.yml"
-  /api/university/{id}/:
+  /university/{id}/:
     $ref: "./campuses/paths/api-university-{id}.yml"
-  /api/comment/:
+  /comment/:
     $ref: "./comments/paths/api-comment.yml"
-  /api/comment/create/:
+  /comment/create/:
     $ref: "./comments/paths/api-comment-create.yml"
-  /api/items/:
+  /items/:
     $ref: "./items/paths/api-items.yml"
-  /api/items/create/:
+  /items/create/:
     $ref: "./items/paths/api-items-create.yml"
-  /api/items/{id}/:
+  /items/{id}/:
     $ref: "./items/paths/api-items-{id}.yml"
-  /api/items/{id}/purchase/:
+  /items/{id}/purchase/:
     $ref: "./items/paths/api-items-{id}-purchase.yml"
-  /api/items/{id}/complete/:
+  /items/{id}/complete/:
     $ref: "./items/paths/api-items-{id}-complete.yml"
-  /api/items/{id}/cancel/:
+  /items/{id}/cancel/:
     $ref: "./items/paths/api-items-{id}-cancel.yml"
-  /api/items/{id}/relisting/:
+  /items/{id}/relisting/:
     $ref: "./items/paths/api-items-{id}-relisting.yml"
-  /api/items/{id}/like-toggle/:
+  /items/{id}/like-toggle/:
     $ref: "./items/paths/api-items-{id}-like-toggle.yml"
-  /api/items/{id}/report/:
+  /items/{id}/report/:
     $ref: "./items/paths/api-items-{id}-report.yml"
-  /api/items/user/like/:
+  /items/user/like/:
     $ref: "./items/paths/api-items-user-like.yml"
-  /api/items/user/sell/:
+  /items/user/sell/:
     $ref: "./items/paths/api-items-user-sell.yml"
-  /api/items/user/buy/:
+  /items/user/buy/:
     $ref: "./items/paths/api-items-user-buy.yml"
-  /api/notification/:
+  /notification/:
     $ref: "./notifications/paths/api-notification.yml"
-  /api/notification/{id}/update-importance/:
+  /notification/{id}/update-importance/:
     $ref: "./notifications/paths/api-notification-{id}-update-importance.yml"
-  /api/devices/:
+  /devices/:
     $ref: "./fcm_django/paths/api-devices.yml"
-  /api/messages/:
+  /messages/:
     $ref: "./transaction_messages/paths/api-messages.yml"
-  /api/messages/create/:
+  /messages/create/:
     $ref: "./transaction_messages/paths/api-messages-create.yml"
-  /api/users/:
+  /users/:
     get:
       operationId: users_list
       summary: ユーザー一覧取得
@@ -660,7 +660,7 @@ paths:
                   value:
                     detail: 認証情報が含まれていません。
           description: 未認証
-  /api/users/{id}/block/:
+  /users/{id}/block/:
     post:
       tags:
         - users
@@ -735,7 +735,7 @@ paths:
                 認証エラー:
                   value:
                     detail: 認証情報が含まれていません。
-  /api/blocked_user_list/:
+  /blocked_user_list/:
     get:
       tags:
         - users
