@@ -26,7 +26,7 @@ class DeviceRegistrationTest(TestCase):
         デバイスを登録できるかテスト
         """
         pre_device_count = FCMDevice.objects.count()
-        response = self.client.patch(self.device_registration_url, self.device_data, format="json")
+        response = self.client.post(self.device_registration_url, self.device_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(FCMDevice.objects.count(), pre_device_count + 1)
         self.assertEqual(FCMDevice.objects.last().registration_id, self.device_data["registration_id"])
@@ -37,7 +37,7 @@ class DeviceRegistrationTest(TestCase):
         """
         pre_device_count = FCMDevice.objects.count()
         invalid_data = {"registration_id": "", "type": "android"}
-        response = self.client.patch(self.device_registration_url, invalid_data, format="json")
+        response = self.client.post(self.device_registration_url, invalid_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(FCMDevice.objects.count(), pre_device_count)
 
@@ -47,7 +47,7 @@ class DeviceRegistrationTest(TestCase):
         """
         pre_device_count = FCMDevice.objects.count()
         invalid_data = {"registration_id": "", "type": "xox"}
-        response = self.client.patch(self.device_registration_url, invalid_data, format="json")
+        response = self.client.post(self.device_registration_url, invalid_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(FCMDevice.objects.count(), pre_device_count)
 
@@ -59,7 +59,7 @@ class DeviceRegistrationTest(TestCase):
         device_data_duplicate_id = {"registration_id": device.registration_id, "type": "ios"}
         pre_device_count = FCMDevice.objects.count()
         self.assertNotEqual(device.user, self.user)  # 最初は他人に紐ずく
-        response = self.client.patch(self.device_registration_url, device_data_duplicate_id, format="json")
+        response = self.client.post(self.device_registration_url, device_data_duplicate_id, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(FCMDevice.objects.count(), pre_device_count)
         device.refresh_from_db()
