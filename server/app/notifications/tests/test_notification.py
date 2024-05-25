@@ -17,7 +17,7 @@ class NotificationTest(APITestCase):
     def setUp(self):
         url = reverse("login")  # JWTトークン取得エンドポイント
         data = {"email": "test1@example.com", "password": "test"}
-        response = self.client.patch(url, data, format="json")
+        response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         token = response.data["access"]  # JWTアクセストークンを取得
         self.client.cookies["access_token"] = token
@@ -41,7 +41,7 @@ class UpdateNotificationImportanceTest(APITestCase):
     def setUp(self):
         url = reverse("login")  # JWTトークン取得エンドポイント
         data = {"email": "test1@example.com", "password": "test"}
-        response = self.client.patch(url, data, format="json")
+        response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         token = response.data["access"]  # JWTアクセストークンを取得
         self.client.cookies["access_token"] = token
