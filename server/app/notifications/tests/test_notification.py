@@ -17,7 +17,7 @@ class NotificationTest(APITestCase):
     def setUp(self):
         url = reverse("login")  # JWTトークン取得エンドポイント
         data = {"email": "test1@example.com", "password": "test"}
-        response = self.client.post(url, data, format="json")
+        response = self.client.patch(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         token = response.data["access"]  # JWTアクセストークンを取得
         self.client.cookies["access_token"] = token
@@ -41,7 +41,7 @@ class UpdateNotificationImportanceTest(APITestCase):
     def setUp(self):
         url = reverse("login")  # JWTトークン取得エンドポイント
         data = {"email": "test1@example.com", "password": "test"}
-        response = self.client.post(url, data, format="json")
+        response = self.client.patch(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         token = response.data["access"]  # JWTアクセストークンを取得
         self.client.cookies["access_token"] = token
@@ -56,7 +56,7 @@ class UpdateNotificationImportanceTest(APITestCase):
             "notifications:notification-update-importance", kwargs={"pk": "7b6f8e41-23bf-49c6-8fbb-459118c4eb0e"}
         )
         data = {"is_important": False}
-        response = self.client.post(url, data, format="json")
+        response = self.client.patch(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["is_important"], False)
 
@@ -70,7 +70,7 @@ class UpdateNotificationImportanceTest(APITestCase):
             "notifications:notification-update-importance", kwargs={"pk": "7b6f8e41-23bf-49c6-8fbb-459118c4eb0e"}
         )
         data = {"is_important": True}
-        response = self.client.post(url, data, format="json")
+        response = self.client.patch(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["is_important"], True)
 
@@ -84,7 +84,7 @@ class UpdateNotificationImportanceTest(APITestCase):
             "notifications:notification-update-importance", kwargs={"pk": "d37dbd2c-b2a2-4e19-a6d5-ba5480380e27"}
         )
         data = {"is_important": True}
-        response = self.client.post(url, data, format="json")
+        response = self.client.patch(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["is_important"], True)
 
@@ -98,6 +98,6 @@ class UpdateNotificationImportanceTest(APITestCase):
             "notifications:notification-update-importance", kwargs={"pk": "d37dbd2c-b2a2-4e19-a6d5-ba5480380e27"}
         )
         data = {"is_important": False}
-        response = self.client.post(url, data, format="json")
+        response = self.client.patch(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["is_important"], False)
