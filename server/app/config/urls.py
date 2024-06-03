@@ -11,7 +11,7 @@ urlpatterns = [
     path("api/comment/", include("comments.urls")),
     path("api/v2/comment/", include("comments.urls_v2")),
     path("api/items/", include("items.urls")),
-    path("api/items/v2/", include("items_v2.urls")),
+    path("api/v2/items/", include("items.urls_v2")),
     path("api/notification/", include("notifications.urls")),
     path("api/v2/notification/", include("notifications.urls_v2")),
     path("api/messages/", include("transaction_messages.urls")),
