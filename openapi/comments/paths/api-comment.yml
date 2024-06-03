@@ -1,7 +1,7 @@
 get:
   operationId: comment_retrieve
   summary: コメント一覧取得API
-  description: コメント一覧取得API
+  description: コメントの一覧を取得するためのAPIです。ログインユーザーがブロック中/被ブロック中のユーザーのコメントは除外されます。
   parameters:
     - name: item_id
       in: query

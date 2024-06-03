@@ -12,7 +12,7 @@ properties:
   user_email:
     type: string
     example: admin@ed.tus.ac.jp
-  comment:
+  message:
     type: string
     example: "買いたいです"
   created_at:

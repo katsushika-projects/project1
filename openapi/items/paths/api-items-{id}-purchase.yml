@@ -1,6 +1,9 @@
 patch:
   operationId: items_purchase_partial_update
   summary: 商品購入API
+  description: |-
+    商品を購入するAPIです。<br>
+    buyerをログインユーザーに、listing_statusをpurchasedに更新します。
   parameters:
     - in: path
       name: id
@@ -11,7 +14,7 @@ patch:
         format: uuid
       required: true
   tags:
-    - items
+    - item
   security:
     - tokenAuth: []
     - jwtAuth: []
@@ -22,3 +25,29 @@ patch:
           schema:
             $ref: "../schemas/item.yml"
       description: ""
+    400:
+      description: 失敗（優先順位 Examplesの順）
+      content:
+        application/json:
+          examples:
+            ブロック中/被ブロック中のユーザーの商品:
+              value:
+                detail: ブロック中、被ブロック中のユーザーの商品は購入できません。
+            未購入の商品でない:
+              value:
+                detail: 未購入の商品のみ購入できます。
+            ログインユーザーが出品した商品:
+              value:
+                detail: 自分自身の商品を購入することはできません。
+    404:
+      content:
+        application/json:
+          examples:
+            パスパラメタが不正1:
+              description: パスパラメタのidに該当する商品が存在しない場合
+              value:
+                detail: 見つかりませんでした。
+        application/html:
+          examples:
+            パスパラメタが不正2:
+              description: パスパラメタidが有効なUUIDではない場合、Djangoの黄色画面のhtmlが返される

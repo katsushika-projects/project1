@@ -5,7 +5,7 @@ from django.middleware.csrf import get_token
 from djoser import utils
 from djoser import views as djoser_views
 from rest_framework import permissions, status
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, ParseError
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -63,7 +63,7 @@ class JWTokenRefreshView(views.TokenRefreshView):
         # cookieからリフレッシュトークンを取得
         refresh_token = request.COOKIES.get("refresh_token")
         if refresh_token is None:
-            return Response({"error": "No refresh"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "No refresh"}, status=status.HTTP_400_BAD_REQUEST)
 
         # リクエストにリフレッシュトークンを含めなおす
         request_data = request.data.copy()
@@ -100,7 +100,7 @@ class LogoutView(views.TokenBlacklistView):
     def post(self, request, *args, **kwargs):
         refresh_token = request.COOKIES.get("refresh_token")
         if refresh_token is None:
-            return Response({"error": "No refresh"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "No refresh"}, status=status.HTTP_400_BAD_REQUEST)
 
         # リクエストにリフレッシュトークンを含めなおす
         request.data["refresh"] = refresh_token
@@ -112,7 +112,7 @@ class LogoutView(views.TokenBlacklistView):
         response.delete_cookie("refresh_token")
 
         # 既に存在するresponseにdataを追加
-        response.data = {"Message": "Logout"}
+        response.data = {"detail": "Logged out"}
 
         return response
 
@@ -185,21 +185,21 @@ class UserBlockAPIView(APIView):
     def post(self, request, *args, **kwargs):
         user_id = kwargs.get("pk")
         if not User.objects.filter(id=user_id).exists():
-            raise ValidationError(detail="ユーザーが存在しません")
+            raise ParseError(detail="ユーザーが存在しません")
 
         user = User.objects.get(id=user_id)
         if user == self.request.user:
-            raise ValidationError(detail="自分自身をブロックすることはできません")
+            raise ParseError(detail="自分自身をブロックすることはできません")
         if Block.objects.filter(user=self.request.user, blocked_user=user).exists():
-            raise ValidationError(detail="既にブロックしています")
+            raise ParseError(detail="既にブロックしています")
         if Item.objects.filter(
             seller=self.request.user, buyer=user, listing_status=Item.ListingStatus.PURCHASED
         ).exists():
-            raise ValidationError(detail="取引中のユーザーはブロックできません")
+            raise ParseError(detail="取引中のユーザーはブロックできません")
         if Item.objects.filter(
             seller=user, buyer=self.request.user, listing_status=Item.ListingStatus.PURCHASED
         ).exists():
-            raise ValidationError(detail="取引中のユーザーはブロックできません")
+            raise ParseError(detail="取引中のユーザーはブロックできません")
 
         Block.objects.create(user=self.request.user, blocked_user=user)
         return Response(status=status.HTTP_201_CREATED)
@@ -207,9 +207,9 @@ class UserBlockAPIView(APIView):
     def delete(self, request, *args, **kwargs):
         user_id = kwargs.get("pk")
         if not User.objects.filter(id=user_id).exists():
-            raise ValidationError(detail="ユーザーが存在しません")
+            raise ParseError(detail="ユーザーが存在しません")
         instance = User.objects.get(id=user_id)
         if not Block.objects.filter(user=self.request.user, blocked_user=instance).exists():
-            raise ValidationError(detail="ブロックしていません")
+            raise ParseError(detail="ブロックしていません")
         Block.objects.filter(user=self.request.user, blocked_user=instance).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

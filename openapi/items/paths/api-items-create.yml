@@ -3,7 +3,7 @@ post:
   summary: 商品作成API
   description: item作成API
   tags:
-    - items
+    - item
   requestBody:
     description: |
       item作成APIのリクエストボディです。<br>
@@ -11,14 +11,15 @@ post:
       multipart/form-data:でリクエストを送信してください。<br>
       画像はimage_1からimage_10までのキーで送信してください。<br>
       image_1, image_2と処理し、途切れたらそこで終了します。<br>
-      よって10枚すべてのkeyを送信しなくても構いません。
+      よって10枚すべてのkeyを送信しなくても構いません。（image_1,image_3のような間の空いた組み合わせで送信するとimage_1から連続して続いてる画像までが送信されます。）
     content:
       multipart/form-data:
         schema:
           $ref: "../schemas/create-item.yml"
     required: true
   security:
-    - AccessTokenAuth: []
+    - tokenAuth: []
+    - jwtAuth: []
   responses:
     "201":
       content:
@@ -26,3 +27,58 @@ post:
           schema:
             $ref: "../schemas/item.yml"
       description: ""
+    400:
+      description: 失敗（優先順位 Examplesの順）
+      content:
+        application/json:
+          examples:
+            keyが不足2:
+              description: |
+                price, name, description, condition, writing_state, recievable_campus<br>
+                のいずれか(requiredのimage_1以外)が不足している場合、不足している項目の中で、この順の最初のものの項目名が返される
+              value:
+                detail: price が必要です
+            keyが不足3:
+              description: image_1キーのみが不足している場合（image_1はないがimage_2キーはある場合もこれに該当する）
+              value:
+                detail: 写真が必須です。
+            値が不足:
+              description: キーimagesの値の配列の要素のn番目はimege_nフィールドについてのレスポンスを表し、何の問題もない場合は空のオブジェクト{}が返される
+              value:
+                images:
+                  - {}
+                  - photo_path:
+                      - 添付されたデータはファイルではありません。フォームのエンコーディングタイプを確認してください。
+                  - {}
+                price:
+                  - 有効な整数を入力してください。
+                name:
+                  - この項目は空にできません。
+                description:
+                  - この項目は空にできません。
+                writing_state:
+                  - '""は有効な選択肢ではありません。'
+                condition:
+                  - '""は有効な選択肢ではありません。'
+                receivable_campus:
+                  - この項目はnullにできません。
+            値が不正1:
+              value:
+                price:
+                  - この値は32767以下にしてください。
+                name:
+                  - この項目が50文字より長くならないようにしてください。
+                description:
+                  - この項目が255文字より長くならないようにしてください。
+                receivable_campus:
+                  - “85335b31-8e58-4b2” は有効なUUIDではありません。
+            値が不正2:
+              value:
+                receivable_campus:
+                  - '主キー "85335b31-8e58-4b2a-bd96-6e02ac43f560" は不正です - データが存在しません。'
+    500:
+      content:
+        application/html:
+          examples:
+            keyが不足1:
+              description: Request bodyで何も送らなかった場合、Djangoの黄色画面のhtmlが返される

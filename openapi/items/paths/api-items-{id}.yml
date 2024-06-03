@@ -12,7 +12,7 @@ get:
         format: uuid
       required: true
   tags:
-    - items
+    - item
   security:
     - tokenAuth: []
     - jwtAuth: []
@@ -23,13 +23,31 @@ get:
           schema:
             $ref: "../schemas/item.yml"
       description: ""
+    400:
+      content:
+        application/json:
+          examples:
+            ブロック中/被ブロック中のユーザーの商品:
+              value:
+                detail: ブロック中、被ブロック中のユーザーの商品は閲覧できません。
+    404:
+      content:
+        application/json:
+          examples:
+            パスパラメタが不正1:
+              description: パスパラメタのidに該当する商品が存在しない場合
+              value:
+                detail: 見つかりませんでした。
+        application/html:
+          examples:
+            パスパラメタが不正2:
+              description: パスパラメタidが有効なUUIDではない場合、Djangoの黄色画面のhtmlが返される
+
 patch:
   operationId: items_partial_update
-  summary: 商品情報一部更新API
+  summary: 商品情報更新API
   description: |
     商品情報一部更新API<br>
-    multipart/form-data:でリクエストを送信してください。<br>
-    送り方はcreateと一緒です。
   parameters:
     - in: path
       name: id
@@ -44,14 +62,39 @@ patch:
       schema:
         type: string
       description: |
-        True or Falseで指定して下さい。デフォルトはFalseです。 <br>
-        Trueの場合、商品情報の一部のみを更新します。よってリクエストには変更箇所の情報のみがあれば良いです。<br>
-        Falseの場合、商品情報を全て更新します。よってリクエストにすべての情報(Itemのすべての要素)を含める必要があります。
+        True or Falseで指定して下さい。（一応 true も 1 も T も t も許容します）<br>
+        デフォルトはFalseです。 <br>
+        Trueの場合、商品情報の一部のみを更新します。Falseの場合、商品情報を全て更新します。
   tags:
-    - items
+    - item
   requestBody:
+    description: |
+      リクエストの形式は/api/items/create/と同様です。<br>
+      patialがTrueのときは、リクエストには変更箇所の情報のみがあれば良いです。<br>
+      patialがFalseのときは、リクエストにすべての情報を含める必要があります。
     content:
       multipart/form-data:
+        schema:
+          type: object
+          properties:
+            images_{n}:
+              type: file
+              format: binary
+              description: |
+                image_1, image_2, ...,image_10のうち、必要な数だけ送信してください。<br>
+              #TODO:partialのimages周りの不備を修正したら、説明を追記
+            price:
+              type: integer
+            name:
+              type: string
+            description:
+              type: string
+            condition:
+              type: string
+            writing_state:
+              type: string
+            receivable_campus:
+              type: string
   security:
     - tokenAuth: []
     - jwtAuth: []
@@ -62,6 +105,88 @@ patch:
           schema:
             $ref: "../schemas/item.yml"
       description: ""
+    400:
+      description: 失敗（優先順位 Examplesの順）
+      content:
+        application/json:
+          examples:
+            購入済みの商品:
+              value:
+                detail: 購入済みの商品は編集できません。
+            既に取引完了している商品:
+              value:
+                detail: 取引完了した商品は編集できません。
+            ログインユーザーが出品した商品でない:
+              value:
+                detail: あなたが出品した商品ではありません。
+            keyが不足2:
+              description: |
+                partialがFalseの場合のみ<br>
+                price, name, description, condition, writing_state, recievable_campus<br>
+                のいずれか(requiredのimage_1以外)が不足している場合、不足している項目の中で、この順の最初のものの項目名が返される
+              value:
+                detail: price が必要です
+            keyが不足3:
+              description: |
+                partialがFalseの場合のみ<br>
+                image_1キーのみが不足している場合（image_1はないがimage_2キーはある場合もこれに該当する）
+              value:
+                detail: 写真が必須です。
+            値が不足:
+              description: |
+                partialがFalseの場合
+                キーimagesの値の配列の要素のi番目はimege_nフィールドのnがi番目に若いものについてのレスポンスを表し、何の問題もない場合は空のオブジェクト{}が返される
+              value:
+                images:
+                  - {}
+                  - photo_path:
+                      - 添付されたデータはファイルではありません。フォームのエンコーディングタイプを確認してください。
+                  - {}
+                price:
+                  - 有効な整数を入力してください。
+                name:
+                  - この項目は空にできません。
+                description:
+                  - この項目は空にできません。
+                writing_state:
+                  - '""は有効な選択肢ではありません。'
+                condition:
+                  - '""は有効な選択肢ではありません。'
+                receivable_campus:
+                  - この項目はnullにできません。
+            値が不正1:
+              value:
+                price:
+                  - この値は32767以下にしてください。
+                name:
+                  - この項目が50文字より長くならないようにしてください。
+                description:
+                  - この項目が255文字より長くならないようにしてください。
+                receivable_campus:
+                  - “85335b31-8e58-4b2” は有効なUUIDではありません。
+            値が不正2:
+              value:
+                receivable_campus:
+                  - '主キー "85335b31-8e58-4b2a-bd96-6e02ac43f560" は不正です - データが存在しません。'
+    404:
+      content:
+        application/json:
+          examples:
+            パスパラメタが不正1:
+              description: パスパラメタのidに該当する商品が存在しない場合
+              value:
+                detail: 見つかりませんでした。
+        application/html:
+          examples:
+            パスパラメタが不正2:
+              description: パスパラメタidが有効なUUIDではない場合、Djangoの黄色画面のhtmlが返される
+    500:
+      content:
+        application/html:
+          examples:
+            keyが不足1:
+              description: Request bodyで何も送らなかった場合、Djangoの黄色画面のhtmlが返される
+
 delete:
   operationId: items_destroy
   summary: 商品削除API
@@ -76,10 +201,29 @@ delete:
         format: uuid
       required: true
   tags:
-    - items
+    - item
   security:
     - tokenAuth: []
     - jwtAuth: []
   responses:
     "204":
-      description: No response body
+      description: No response body(成功)
+    400:
+      content:
+        application/json:
+          examples:
+            ログインユーザーが出品した商品でない:
+              value:
+                detail: あなたが出品した商品ではありません。
+    404:
+      content:
+        application/json:
+          examples:
+            パスパラメタが不正1:
+              description: パスパラメタのidに該当する商品が存在しない場合
+              value:
+                detail: 見つかりませんでした。
+        application/html:
+          examples:
+            パスパラメタが不正2:
+              description: パスパラメタidが有効なUUIDではない場合、Djangoの黄色画面のhtmlが返される

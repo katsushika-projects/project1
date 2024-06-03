@@ -14,30 +14,10 @@ get:
         format: uuid
   tags:
     - messages
-  security:
-    - jwtAuth: []
   responses:
     "200":
       description: "成功"
       content:
         application/json:
           schema:
-            type: array
-            items:
-              type: object
-              properties:
-                id:
-                  type: string
-                  example: 97982377-429c-487e-9b54-fc7b7df12203
-                message:
-                  type: string
-                  example: 了解しました
-                created_at:
-                  type: string
-                  example: "2023-09-13T21:43:49+09:00"
-                item_id:
-                  type: string
-                  example: ef408730-0bef-45f9-9c82-61f602d14f87
-                user:
-                  type: string
-                  example: 671a1f67-3030-4151-a19a-43c630f8343c
+            $ref: "../schemas/message.yml"

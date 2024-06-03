@@ -1,6 +1,10 @@
 patch:
   operationId: items_like_toggle_partial_update
   summary: 商品いいねトグルAPI
+  description: |-
+    商品のいいねを切り替えるAPIです。<br>
+    いいねを付けた場合、is_liked_by_current_userをtrue,<br>
+    いいねを解除した場合、is_liked_by_current_userをfalseで返します。
   parameters:
     - in: path
       name: id
@@ -11,7 +15,7 @@ patch:
         format: uuid
       required: true
   tags:
-    - items
+    - item
   security:
     - tokenAuth: []
     - jwtAuth: []
@@ -20,5 +24,27 @@ patch:
       content:
         application/json:
           schema:
-            $ref: "../schemas/item.yml"
+            type: object
+            properties:
+              is_liked_by_current_user:
+                type: boolean
+                example: true
       description: ""
+    400:
+      description: 失敗（優先順位 Examplesの順）
+      content:
+        application/json:
+          examples:
+            存在しない商品:
+              description: パスパラメタのidに該当する商品が存在しない場合
+              value:
+                detail: 商品が存在しません。
+            ブロック中/被ブロック中のユーザーの商品:
+              value:
+                detail: ブロック中、被ブロック中のユーザーの商品はいいねできません。
+    404:
+      content:
+        application/html:
+          examples:
+            パスパラメタが不正:
+              description: パスパラメタidが有効なUUIDではない場合、Djangoの黄色画面のhtmlが返される
