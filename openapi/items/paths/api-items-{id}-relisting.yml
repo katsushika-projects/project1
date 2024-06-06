@@ -2,7 +2,8 @@ patch:
   operationId: items_cancel_partial_relisting
   summary: 再出品API
   description: |-
-    自分の商品かつキャンセル中の商品に限り，再出品できます．
+    商品を再出品するAPIです。<br>
+    listing_statusをunpurchasedに更新します。
   parameters:
     - in: path
       name: id
@@ -13,7 +14,7 @@ patch:
         format: uuid
       required: true
   tags:
-    - items
+    - item
   security:
     - tokenAuth: []
     - jwtAuth: []
@@ -24,3 +25,26 @@ patch:
           schema:
             $ref: "../schemas/item.yml"
       description: ""
+    400:
+      description: 失敗（優先順位 Examplesの順）
+      content:
+        application/json:
+          examples:
+            キャンセル済みの商品でない:
+              value:
+                detail: キャンセルされた商品以外は再出品できません。
+            ログインユーザーが出品した商品でない:
+              value:
+                detail: あなたが出品した商品ではありません。
+    404:
+      content:
+        application/json:
+          examples:
+            パスパラメタが不正1:
+              description: パスパラメタのidに該当する商品が存在しない場合
+              value:
+                detail: 見つかりませんでした。
+        application/html:
+          examples:
+            パスパラメタが不正2:
+              description: パスパラメタidが有効なUUIDではない場合、Djangoの黄色画面のhtmlが返される

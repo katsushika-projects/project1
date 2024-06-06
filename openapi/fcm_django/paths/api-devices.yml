@@ -47,3 +47,19 @@ post:
           schema:
             $ref: "../schemas/device.yml"
       description: ""
+    400:
+      content:
+        application/json:
+          examples:
+            a:
+              value:
+                registration_id:
+                  - この項目は必須です。
+                type:
+                  - この項目は必須です。
+            b:
+              value:
+                registration_id:
+                  - この項目は空にできません。
+                type:
+                  - \"\"は有効な選択肢ではありません。

@@ -16,6 +16,11 @@ patch:
   tags:
     - notification
   requestBody:
+    description: |-
+      何も指定しないと何も変更されない。<br>
+      確認されてる許容値<br>
+      true: true, True, 1<br>
+      false: false, False, 0
     content:
       application/json:
         schema:
@@ -30,3 +35,28 @@ patch:
           schema:
             $ref: "../schemas/important.yml"
       description: ""
+    400:
+      content:
+        application/json:
+          examples:
+            値が不正:
+              value:
+                is_important:
+                  - Must be a valid boolean.
+    401:
+      content:
+        application/json:
+          examples:
+            ログインユーザーと通知のユーザーが異なる:
+              description: No response body（）
+    404:
+      content:
+        application/json:
+          examples:
+            パスパラメタが不正1:
+              value:
+                detail: 見つかりませんでした。
+        application/html:
+          examples:
+            パスパラメタが不正2:
+              description: パスパラメタidが有効なUUIDではない場合、Djangoの黄色画面のhtmlが返される

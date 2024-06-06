@@ -1,21 +1,22 @@
 openapi: 3.0.3
 info:
   title: 教科書・参考書取引所 OpenAPI
-  version: 1.0.0
+  version: 2.0.0
   description: 教科書・参考書取引所 OpenAPI Schema
 servers:
-  - url: http://localhost:8000
+  - url: http://localhost:8000/api/v2
     description: 開発用サーバー
-  - url: https://api.uni-bo.net
+  - url: https://api.uni-bo.net/api/v2
     description: 本番用サーバー
 paths:
-  /api/auth/jwt/create/:
+  /auth/jwt/create/:
     post:
       summary: ログイン(jwt取得)
       operationId: auth_jwt_create_create
       description: |-
         Takes a set of user credentials and returns an access and refresh JSON web
-        token pair to prove the authentication of those credentials.
+        token pair to prove the authentication of those credentials.<br>
+        期限は、アクセストークンが3時間、レフレッシュトークンが7日間です。
       tags:
         - jwt
       requestBody:
@@ -37,27 +38,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/TokenObtainPair"
           description: ""
-  /api/auth/jwt/refresh/:
+        401:
+          content:
+            application/json:
+              examples:
+                存在しないemail or パスワードが正しくない:
+                  value:
+                    detail: No active account found with the given credentials
+  /auth/jwt/refresh/:
     post:
       summary: リフレッシュ(アクセストークン再発行)
       operationId: auth_jwt_refresh_create
       description: |-
         Takes a refresh type JSON web token and returns an access type JSON web
-        token if the refresh token is valid.
+        token if the refresh token is valid.<br>
+        期限は、アクセストークンが3時間、レフレッシュトークンが7日間です。
       tags:
         - jwt
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/TokenRefresh"
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: "#/components/schemas/TokenRefresh"
-          multipart/form-data:
-            schema:
-              $ref: "#/components/schemas/TokenRefresh"
-        required: true
       responses:
         "200":
           content:
@@ -65,7 +62,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/TokenRefresh"
           description: ""
-  /api/auth/logout/:
+        400:
+          content:
+            application/json:
+              example:
+                detail: No refresh
+  /auth/logout/:
     post:
       summary: ログアウト
       operationId: auth_logout_create
@@ -74,18 +76,8 @@ paths:
         `rest_framework_simplejwt.token_blacklist` app installed.
       tags:
         - jwt
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/TokenBlacklist"
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: "#/components/schemas/TokenBlacklist"
-          multipart/form-data:
-            schema:
-              $ref: "#/components/schemas/TokenBlacklist"
-        required: true
+      security:
+        - jwtAuth: []
       responses:
         "200":
           content:
@@ -93,7 +85,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/TokenBlacklist"
           description: "ログアウト成功"
-  /api/auth/users/:
+        400:
+          description: リフレッシュトークンが不足
+          content:
+            application/json:
+              example:
+                detail: No refresh
+  /auth/users/:
     #   get:
     #     operationId: auth_users_list
     #     parameters:
@@ -133,10 +131,9 @@ paths:
               $ref: "#/components/schemas/UserCreate"
         required: true
       security:
-        - jwtAuth: []
         - {}
       responses:
-        "201":
+        201:
           content:
             application/json:
               schema:
@@ -169,7 +166,7 @@ paths:
                   value:
                     - detail: メールアドレスの形式は「@ed.tus.ac.jp」です
 
-  # /api/auth/users/{id}/:
+  # /auth/users/{id}/:
   #   get:
   #     operationId: auth_users_retrieve
   #     parameters:
@@ -277,7 +274,7 @@ paths:
   #     responses:
   #       '204':
   #         description: No response body
-  /api/auth/users/activation/:
+  /auth/users/activation/:
     post:
       summary: アカウント有効化
       operationId: auth_users_activation_create
@@ -295,18 +292,25 @@ paths:
             schema:
               $ref: "#/components/schemas/Activation"
         required: true
-      security:
-        - tokenAuth: []
-        - jwtAuth: []
-        - {}
       responses:
-        "200":
+        200:
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Activation"
           description: ""
-  /api/auth/users/me/:
+        400:
+          content:
+            application/json:
+              examples:
+                uidが存在しない:
+                  value:
+                    uid: ユーザーIDまたはユーザー自体が存在しません。
+                トークンが有効でない:
+                  value:
+                    token: 有効なトークンではありません。
+
+  /auth/users/me/:
     get:
       summary: ユーザー詳細取得API
       operationId: auth_users_me_retrieve
@@ -386,7 +390,7 @@ paths:
       responses:
         "204":
           description: No response body
-  /api/auth/users/resend_activation/:
+  /auth/users/resend_activation/:
     post:
       operationId: auth_users_resend_activation_create
       tags:
@@ -414,11 +418,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/SendEmailReset"
           description: ""
-  /api/auth/users/reset_email/:
+  /auth/users/reset_email/:
     post:
       operationId: auth_users_reset_email_create
       tags:
         - auth
+      summary: メールアドレス変更
+      description: メールアドレス変更後Emailを送信 ※現在使用していないため、正確なschema定義は未実装
       requestBody:
         content:
           application/json:
@@ -442,11 +448,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/SendEmailReset"
           description: ""
-  /api/auth/users/reset_email_confirm/:
+  /auth/users/reset_email_confirm/:
     post:
       operationId: auth_users_reset_email_confirm_create
       tags:
         - auth
+      description: ※現在使用していないため、正確なschema定義は未実装
       requestBody:
         content:
           application/json:
@@ -470,9 +477,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/UsernameResetConfirm"
           description: ""
-  /api/auth/users/reset_password/:
+  /auth/users/reset_password/:
     post:
       operationId: auth_users_reset_password_create
+      description: ※現在使用していないため、正確なschema定義は未実装
       tags:
         - auth
       requestBody:
@@ -498,9 +506,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/SendEmailReset"
           description: ""
-  /api/auth/users/reset_password_confirm/:
+  /auth/users/reset_password_confirm/:
     post:
       operationId: auth_users_reset_password_confirm_create
+      description: ※現在使用していないため、正確なschema定義は未実装
       tags:
         - auth
       requestBody:
@@ -525,9 +534,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/PasswordResetConfirm"
           description: ""
-  /api/auth/users/set_email/:
+  /auth/users/set_email/:
     post:
       operationId: auth_users_set_email_create
+      description: ※現在使用していないため、正確なschema定義は未実装
       tags:
         - auth
       requestBody:
@@ -552,9 +562,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/SetUsernameRetype"
           description: ""
-  /api/auth/users/set_password/:
+  /auth/users/set_password/:
     post:
       operationId: auth_users_set_password_create
+      description: ※現在使用していないため、正確なschema定義は未実装
       tags:
         - auth
       requestBody:
@@ -579,79 +590,83 @@ paths:
               schema:
                 $ref: "#/components/schemas/SetPasswordRetype"
           description: ""
-  /api/campus/:
+  /campus/:
     $ref: "./campuses/paths/api-campus.yml"
-  /api/campus/{id}/:
+  /campus/{id}/:
     $ref: "./campuses/paths/api-campus-{id}.yml"
-  /api/comment/:
-    $ref: "./comments/paths/api-comment.yml"
-  /api/comment/create/:
-    $ref: "./comments/paths/api-comment-create.yml"
-  /api/items/:
-    $ref: "./items/paths/api-items.yml"
-  /api/items/create:
-    $ref: "./items/paths/api-items-create.yml"
-  /api/items/{id}/:
-    $ref: "./items/paths/api-items-{id}.yml"
-  /api/items/{id}/purchase/:
-    $ref: "./items/paths/api-items-{id}-purchase.yml"
-  /api/items/{id}/complete/:
-    $ref: "./items/paths/api-items-{id}-complete.yml"
-  /api/items/{id}/cancel/:
-    $ref: "./items/paths/api-items-{id}-cancel.yml"
-  /api/items/{id}/relisting/:
-    $ref: "./items/paths/api-items-{id}-relisting.yml"
-  /api/items/{id}/like-toggle/:
-    $ref: "./items/paths/api-items-{id}-like-toggle.yml"
-  /api/items/{id}/report/:
-    $ref: "./items/paths/api-items-{id}-report.yml"
-  /api/items/user/like/:
-    $ref: "./items/paths/api-items-user-like.yml"
-  /api/items/user/sell/:
-    $ref: "./items/paths/api-items-user-sell.yml"
-  /api/items/user/buy/:
-    $ref: "./items/paths/api-items-user-buy.yml"
-  /api/notification/:
-    $ref: "./notifications/paths/api-notification.yml"
-  /api/notification/{id}/update-importance/:
-    $ref: "./notifications/paths/api-notification-{id}-update-importance.yml"
-  /api/devices/:
-    $ref: "./fcm_django/paths/api-devices.yml"
-  /api/messages/:
-    $ref: "./transaction_messages/paths/api-messages.yml"
-  /api/messages/create/:
-    $ref: "./transaction_messages/paths/api-messages-create.yml"
-  /api/university/:
+  /university/:
     $ref: "./campuses/paths/api-university.yml"
-  /api/university/{id}/:
+  /university/{id}/:
     $ref: "./campuses/paths/api-university-{id}.yml"
-  /api/users/:
+  /comment/:
+    $ref: "./comments/paths/api-comment.yml"
+  /comment/create/:
+    $ref: "./comments/paths/api-comment-create.yml"
+  /items/:
+    $ref: "./items/paths/api-items.yml"
+  /items/create/:
+    $ref: "./items/paths/api-items-create.yml"
+  /items/{id}/:
+    $ref: "./items/paths/api-items-{id}.yml"
+  /items/{id}/purchase/:
+    $ref: "./items/paths/api-items-{id}-purchase.yml"
+  /items/{id}/complete/:
+    $ref: "./items/paths/api-items-{id}-complete.yml"
+  /items/{id}/cancel/:
+    $ref: "./items/paths/api-items-{id}-cancel.yml"
+  /items/{id}/relisting/:
+    $ref: "./items/paths/api-items-{id}-relisting.yml"
+  /items/{id}/like-toggle/:
+    $ref: "./items/paths/api-items-{id}-like-toggle.yml"
+  /items/{id}/report/:
+    $ref: "./items/paths/api-items-{id}-report.yml"
+  /items/user/like/:
+    $ref: "./items/paths/api-items-user-like.yml"
+  /items/user/sell/:
+    $ref: "./items/paths/api-items-user-sell.yml"
+  /items/user/buy/:
+    $ref: "./items/paths/api-items-user-buy.yml"
+  /notification/:
+    $ref: "./notifications/paths/api-notification.yml"
+  /notification/{id}/update-importance/:
+    $ref: "./notifications/paths/api-notification-{id}-update-importance.yml"
+  /devices/:
+    $ref: "./fcm_django/paths/api-devices.yml"
+  /messages/:
+    $ref: "./transaction_messages/paths/api-messages.yml"
+  /messages/create/:
+    $ref: "./transaction_messages/paths/api-messages-create.yml"
+  /users/:
     get:
       operationId: users_list
       summary: ユーザー一覧取得
-      parameters:
-        - name: page
-          required: false
-          in: query
-          description: A page number within the paginated result set.
-          schema:
-            type: integer
       tags:
         - users
       security:
         - tokenAuth: []
         - jwtAuth: []
       responses:
-        "200":
+        200:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PaginatedUserList"
-          description: ""
-  /api/users/{id}/block/:
+                $ref: "#/components/schemas/UserList"
+          description: 成功
+        401:
+          content:
+            application/json:
+              examples:
+                認証エラー:
+                  value:
+                    detail: 認証情報が含まれていません。
+          description: 未認証
+  /users/{id}/block/:
     post:
-      tags: 
-        -  users
+      tags:
+        - users
+      security:
+        - tokenAuth: []
+        - jwtAuth: []
       summary: ユーザーブロック
       parameters:
         - name: id
@@ -660,51 +675,87 @@ paths:
           required: true
           schema:
             type: string
-            format: uuid 
+            format: uuid
       responses:
-        "201":
+        201:
           description: ブロック成功
-        "400":
-          description: バリデーションエラー
-          content: 
-            propertyName: 
-              schema:  
-                type: object
-                properties: 
-                  detail: 
-                    type: string
-                    description: エラー詳細
-        "401":
-          description: 認証エラー
-    delete: 
-      tags: 
-        -  users
+        400:
+          description: ブロック失敗
+          content:
+            application/json:
+              examples:
+                自分自身をブロック:
+                  value:
+                    detail: 自分自身をブロックすることはできません
+                ブロック済みユーザー:
+                  value:
+                    detail: 既にブロック済みのユーザーです
+                取引中のユーザー:
+                  value:
+                    detail: 取引中のユーザーはブロックできません
+        401:
+          description: 未認証
+          content:
+            application/json:
+              examples:
+                認証エラー:
+                  value:
+                    detail: 認証情報が含まれていません。
+    delete:
+      tags:
+        - users
       summary: ユーザーブロック解除
-      parameters: 
+      parameters:
         - name: id
           in: path
           description: ブロック解除するユーザーID
           required: true
-          schema: 
+          schema:
             type: string
             format: uuid
-      responses: 
-        "204":
+      responses:
+        204:
           description: ブロック解除成功
-        "400":
-          description: バリデーションエラー
-          content: 
-            propertyName: 
-              schema: 
-                type: object
-                properties: 
-                  detail: 
-                    type: string
-                    description: エラー詳細
+        400:
+          description: ブロック解除失敗
+          content:
+            application/json:
+              examples:
+                存在しないユーザー:
+                  value:
+                    detail: ユーザーが存在しません
+                ブロックしていないユーザー:
+                  value:
+                    detail: ブロックしていません
+        401:
+          description: 未認証
+          content:
+            application未認証json:
+              examples:
+                認証エラー:
+                  value:
+                    detail: 認証情報が含まれていません。
+  /blocked_user_list/:
+    get:
+      tags:
+        - users
+      summary: ブロックユーザー一覧取得
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserList"
         "401":
-          description: 認証エラー
-      
-      
+          description: Unauthorized
+          content:
+            application/json:
+              examples:
+                認証エラー:
+                  value:
+                    detail: 認証情報が含まれていません。
+
 components:
   schemas:
     Activation:
@@ -712,8 +763,10 @@ components:
       properties:
         uid:
           type: string
+          description: メール送信時に返却されるuid
         token:
           type: string
+          description: メール送信時に返却されるtoken
       required:
         - token
         - uid
@@ -965,6 +1018,11 @@ components:
         refresh:
           type: string
           writeOnly: true
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE2NjQ3NDc1LCJpYXQiOjE3MTY2NDM4NzUsImp0aSI6IjExN2Q3MTc2OGExYTQ3MGJhZGY1YmY2ZDFlOTcyMWQyIiwidXNlcl9pZCI6IjVmMWM3ZDdkLTUyY2UtNDIyZi04YzRiLTRlOWU1ZDkyZGI1ZCJ9.jz3QtLb03GwTW9t8G7ILiU2a3uypRBPJBYp_L0ayec8
+        detail:
+          type: string
+          readOnly: true
+          example: Logged out
       required:
         - refresh
     TokenObtainPair:
@@ -973,15 +1031,19 @@ components:
         email:
           type: string
           writeOnly: true
+          example: test1@example.com
         password:
           type: string
           writeOnly: true
+          example: test
         access:
           type: string
           readOnly: true
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTcxNjkwMzA3NSwiaWF0IjoxNzE2NjQzODc1LCJqdGkiOiI0YWZmYzU4ODM4ZTM0NWUyYTk3ZmI5ODk3OTc0OTVmNSIsInVzZXJfaWQiOiI1ZjFjN2Q3ZC01MmNlLTQyMmYtOGM0Yi00ZTllNWQ5MmRiNWQifQ.IMmPGiJrTS7RBky4hNW6C0sKPMyq8BFrQ2UlZFFcf7o
         refresh:
           type: string
           readOnly: true
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE2NjQ3NDc1LCJpYXQiOjE3MTY2NDM4NzUsImp0aSI6IjExN2Q3MTc2OGExYTQ3MGJhZGY1YmY2ZDFlOTcyMWQyIiwidXNlcl9pZCI6IjVmMWM3ZDdkLTUyY2UtNDIyZi04YzRiLTRlOWU1ZDkyZGI1ZCJ9.jz3QtLb03GwTW9t8G7ILiU2a3uypRBPJBYp_L0ayec8
       required:
         - access
         - email
@@ -993,9 +1055,11 @@ components:
         access:
           type: string
           readOnly: true
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTcxNjkwMzA3NSwiaWF0IjoxNzE2NjQzODc1LCJqdGkiOiI0YWZmYzU4ODM4ZTM0NWUyYTk3ZmI5ODk3OTc0OTVmNSIsInVzZXJfaWQiOiI1ZjFjN2Q3ZC01MmNlLTQyMmYtOGM0Yi00ZTllNWQ5MmRiNWQifQ.IMmPGiJrTS7RBky4hNW6C0sKPMyq8BFrQ2UlZFFcf7o
         refresh:
           type: string
           writeOnly: true
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE2NjQ3NDc1LCJpYXQiOjE3MTY2NDM4NzUsImp0aSI6IjExN2Q3MTc2OGExYTQ3MGJhZGY1YmY2ZDFlOTcyMWQyIiwidXNlcl9pZCI6IjVmMWM3ZDdkLTUyY2UtNDIyZi04YzRiLTRlOWU1ZDkyZGI1ZCJ9.jz3QtLb03GwTW9t8G7ILiU2a3uypRBPJBYp_L0ayec8
       required:
         - access
         - refresh
@@ -1025,9 +1089,15 @@ components:
           format: email
           title: メールアドレス
           maxLength: 350
+          example: xxxxxxx@ed.tus.ac.jp
+          description: 7桁の数字@ed.tus.ac.jp(理科大メールアドレスのフォーマット)
       required:
         - email
         - id
+    UserList:
+      type: array
+      items:
+        $ref: "#/components/schemas/User"
     UserCreate:
       type: object
       properties:
@@ -1086,3 +1156,7 @@ components:
       type: apiKey
       in: cookie
       name: access_token
+    refreshTokenAuth:
+      type: apiKey
+      in: cookie
+      name: refresh_token

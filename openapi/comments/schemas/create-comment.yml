@@ -1,6 +1,6 @@
 type: object
 properties:
-  comment:
+  message:
     type: string
     example: "買いたいです"
   item_id:

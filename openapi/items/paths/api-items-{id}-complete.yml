@@ -1,6 +1,9 @@
 patch:
   operationId: items_complete_partial_update
   summary: 商品取引完了API
+  description: |-
+    商品の取引を完了するAPIです。<br>
+    listing_statusをcompletedに更新します。
   parameters:
     - in: path
       name: id
@@ -11,7 +14,7 @@ patch:
         format: uuid
       required: true
   tags:
-    - items
+    - item
   security:
     - tokenAuth: []
     - jwtAuth: []
@@ -22,3 +25,26 @@ patch:
           schema:
             $ref: "../schemas/item.yml"
       description: ""
+    400:
+      description: 失敗（優先順位 Examplesの順）
+      content:
+        application/json:
+          examples:
+            購入済みの商品でない:
+              value:
+                detail: 購入済みの商品以外は取引完了できません。
+            購入者でない:
+              value:
+                detail: 購入者以外は購入完了できません。
+    404:
+      content:
+        application/json:
+          examples:
+            パスパラメタが不正1:
+              description: パスパラメタのidに該当する商品が存在しない場合
+              value:
+                detail: 見つかりませんでした。
+        application/html:
+          examples:
+            パスパラメタが不正2:
+              description: パスパラメタidが有効なUUIDではない場合、Djangoの黄色画面のhtmlが返される

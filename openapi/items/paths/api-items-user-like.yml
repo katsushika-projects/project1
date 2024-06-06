@@ -1,7 +1,9 @@
 get:
   operationId: items_like_list
   summary: いいね商品一覧取得API
-  description: ユーザーがいいねした商品の一覧を取得できるAPIです。
+  description: |-
+    ユーザーがいいねした商品のうち、未購入と購入済みの商品一覧を取得できるAPIです。<br>
+    ブロック中/被ブロック中のユーザーの商品は取得できません。
   parameters:
     - in: query
       name: page
@@ -12,7 +14,7 @@ get:
       schema:
         type: integer
   tags:
-    - items
+    - item
   security:
     - tokenAuth: []
     - jwtAuth: []

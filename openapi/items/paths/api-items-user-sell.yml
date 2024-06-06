@@ -12,7 +12,7 @@ get:
       schema:
         type: integer
   tags:
-    - items
+    - item
   security:
     - tokenAuth: []
     - jwtAuth: []
