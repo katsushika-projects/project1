@@ -104,7 +104,7 @@ class Block(models.Model):
         verbose_name_plural = "ブロック"
 
     def __str__(self):
-        return f"{self.user.email} - {self.blocked_user.email}"
+        return f"{self.user.email} --> {self.blocked_user.email}"
 
     def create_exclude_user_id_list_by_request_user(request_user):
         user_list_blocked = list(Block.objects.filter(user=request_user).values_list("blocked_user", flat=True))
