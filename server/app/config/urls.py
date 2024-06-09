@@ -29,4 +29,3 @@ if settings.ENABLE_DEBUG_TOOLBAR:
     urlpatterns += [
         path("__debug__/", include("debug_toolbar.urls")),
     ]
-    

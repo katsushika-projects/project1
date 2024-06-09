@@ -215,10 +215,11 @@ FIREBASE_APP = initialize_app()
 # debug_toolbar
 ENABLE_DEBUG_TOOLBAR = DEBUG and "test" not in sys.argv
 if ENABLE_DEBUG_TOOLBAR:
+
     def show_toolbar(request):
         # すべてのリクエストに対してデバッグツールバーを表示
         return True
-    
+
     INSTALLED_APPS += [
         "debug_toolbar",
     ]
