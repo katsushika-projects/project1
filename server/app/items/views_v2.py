@@ -115,7 +115,7 @@ class ItemRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
-        partial = self.request.query_params.get("partial", False).lower() in ['true', '1', 't']
+        partial = self.request.query_params.get("partial", False).lower() in ["true", "1", "t"]
         instance = self.get_object()
         # print("partial: ", partial)
         # print("keywargs: ", kwargs)
@@ -178,7 +178,7 @@ class ItemRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         updated_item = self.get_object()
         response_serializer = ItemSerializer(updated_item, context={"request": request})
         return Response(response_serializer.data, status=status.HTTP_200_OK)
-    
+
     def destroy(self, request, *args, **kwargs):
         item = self.get_object()
         if item.seller != request.user:
@@ -241,7 +241,7 @@ class ItemCancelView(generics.UpdateAPIView):
             return Response({"detail": "取引完了した商品とキャンセル済みの商品はキャンセルできません。"}, status=status.HTTP_400_BAD_REQUEST)
         if item.seller != request.user and item.buyer != request.user:
             return Response({"detail": "あなたが出品した商品でも購入した商品でもありません。"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         item.buyer = None
         item.listing_status = Item.ListingStatus.CANCELED
         item.save()
@@ -262,7 +262,7 @@ class ItemReListingView(generics.UpdateAPIView):
             return Response({"detail": "キャンセルされた商品以外は再出品できません。"}, status=status.HTTP_400_BAD_REQUEST)
         if item.seller != request.user:
             return Response({"detail": "あなたが出品した商品ではありません。"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         item.listing_status = Item.ListingStatus.UNPURCHASED
         item.save()
 
