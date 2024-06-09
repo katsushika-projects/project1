@@ -15,4 +15,6 @@ class Notification(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
-        return (self.user.email) + " : " + (self.title) + " : is_read=" + str(self.is_read)
+        read_status = "Read" if self.is_read else "Unread"
+        importance = "Important" if self.is_important else "Normal"
+        return f"[{read_status}] [{importance}] {self.title} - {self.user.email}"

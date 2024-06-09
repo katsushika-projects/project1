@@ -82,7 +82,7 @@ class Like(models.Model):
         constraints = [models.UniqueConstraint(fields=["item", "user"], name="unique_like")]
 
     def __str__(self):
-        return f"{self.user} likes {self.item}"
+        return f"{self.user} ♡ {self.item}"
 
 
 class Report(models.Model):
@@ -94,3 +94,6 @@ class Report(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["item_id", "reporter_id"], name="unique_report")]
+
+    def __str__(self):
+        return f"{self.reporter_id} --> {self.item_id}"

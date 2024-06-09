@@ -5,7 +5,7 @@ from django.middleware.csrf import get_token
 from djoser import utils
 from djoser import views as djoser_views
 from rest_framework import permissions, status
-from rest_framework.exceptions import ValidationError, ParseError
+from rest_framework.exceptions import ParseError, ValidationError
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
