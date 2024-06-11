@@ -3,7 +3,7 @@ get:
   summary: キャンパス詳細取得API
   description: 指定したキャンパスの詳細を取得するためのAPIです。
   parameters:
-    - neme: id
+    - name: id
       in: path
       description: 取得したいキャンパスのidを指定
       required: true

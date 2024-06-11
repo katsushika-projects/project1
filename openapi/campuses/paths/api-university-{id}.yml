@@ -3,7 +3,7 @@ get:
   summary: 大学詳細取得API
   description: 大学詳細取得API
   parameters:
-    - neme: id
+    - name: id
       in: path
       description: 取得したいキャンパスのidを指定
       required: true
