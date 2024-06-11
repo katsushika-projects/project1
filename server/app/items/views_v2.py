@@ -9,8 +9,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import Block
-from notifications.models import Notification
 from comments.models import Comment
+from notifications.models import Notification
 
 from .models import Item, Like, Report
 from .serializers import ItemCreateSerializer, ItemReportSerializer, ItemSerializer
@@ -112,7 +112,7 @@ class ItemRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         if item.seller.id in exclude_user_id_list:
             return Response({"detail": "ブロック中、被ブロック中のユーザーの商品は閲覧できません。"}, status=status.HTTP_400_BAD_REQUEST)
         comment_count = Comment.objects.filter(item_id=item.id).exclude(user__in=exclude_user_id_list).count()
-        
+
         response_data = self.get_serializer(item).data
         response_data["comment_count"] = comment_count
 
