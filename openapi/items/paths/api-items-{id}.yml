@@ -21,7 +21,7 @@ get:
       content:
         application/json:
           schema:
-            $ref: "../schemas/item.yml"
+            $ref: "../schemas/retrieve-item.yml"
       description: ""
     400:
       content:
