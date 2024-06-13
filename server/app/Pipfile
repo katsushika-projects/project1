@@ -20,7 +20,6 @@ flake8 = "*"
 isort = {version = "*", extras = ["colors"]}
 drf-spectacular = "*"
 drf_spectacular_sidecar = "*"
-django-debug-toolbar = "*"
 
 [requires]
 python_version = "3.10"
