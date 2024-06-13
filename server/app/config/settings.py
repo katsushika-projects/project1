@@ -1,5 +1,4 @@
 import os
-import sys
 from datetime import timedelta
 from pathlib import Path
 
@@ -211,21 +210,3 @@ CLIENT_SITE_NAME = env("CLIENT_SITE_NAME")
 
 # FCM関連
 FIREBASE_APP = initialize_app()
-
-# debug_toolbar
-ENABLE_DEBUG_TOOLBAR = DEBUG and "test" not in sys.argv
-if ENABLE_DEBUG_TOOLBAR:
-
-    def show_toolbar(request):
-        # すべてのリクエストに対してデバッグツールバーを表示
-        return True
-
-    INSTALLED_APPS += [
-        "debug_toolbar",
-    ]
-    MIDDLEWARE += [
-        "debug_toolbar.middleware.DebugToolbarMiddleware",
-    ]
-    DEBUG_TOOLBAR_CONFIG = {
-        "SHOW_TOOLBAR_CALLBACK": show_toolbar,
-    }
