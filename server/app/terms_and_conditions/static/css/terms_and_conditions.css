@@ -1,0 +1,21 @@
+/* とりあえずなので、適宜修正してください。 */
+
+* {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+body {
+    margin: 8px;
+}
+
+h2 {
+    text-align: center;
+}
+
+ol {
+    padding-left: 24px;
+}
+
+li {
+    margin-bottom: 0.5rem;
+}
