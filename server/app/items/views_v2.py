@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import Block
+from comments.models import Comment
 from notifications.models import Notification
 
 from .models import Item, Like, Report
@@ -110,9 +111,12 @@ class ItemRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         exclude_user_id_list = Block.create_exclude_user_id_list_by_request_user(request.user)
         if item.seller.id in exclude_user_id_list:
             return Response({"detail": "ブロック中、被ブロック中のユーザーの商品は閲覧できません。"}, status=status.HTTP_400_BAD_REQUEST)
+        comment_count = Comment.objects.filter(item_id=item.id).exclude(user__in=exclude_user_id_list).count()
 
-        serializer = self.get_serializer(item)
-        return Response(serializer.data)
+        response_data = self.get_serializer(item).data
+        response_data["comment_count"] = comment_count
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
         partial = self.request.query_params.get("partial", False).lower() in ["true", "1", "t"]

@@ -1,0 +1,79 @@
+type: object
+properties:
+  id:
+    type: string
+    example: c1c61f36-6032-4d39-a649-6ad16ee4f00c
+  seller:
+    type: string
+    example: test1@example.com
+  seller_id:
+    type: string
+    example: 1034a2ef-fbac-4805-890f-3169614d59ee
+  receivable_campus:
+    type: string
+    example: 東京理科大学葛飾キャンパス
+  images:
+    type: array
+    items:
+      $ref: "./image.yml"
+  is_liked_by_current_user:
+    type: boolean
+    description: Indicates whether the item is liked by the current user.
+    example: false
+  listing_status:
+    type: string
+    description: The listing status of the item.
+    enum:
+      - unpurchased
+      - purchased
+      - completed
+      - canceled
+    example: unpurchased
+  price:
+    type: integer
+    description: The price of the item.
+    example: 200
+  name:
+    type: string
+    description: The name of the item.
+    example: テスト商品1
+  description:
+    type: string
+    description: The description of the item.
+    example: テスト商品1の説明です
+  condition:
+    type: string
+    description: The condition of the item.
+    enum:
+      - brandNew
+      - fine
+      - used
+      - damaged
+    example: brandNew
+  writing_state:
+    type: string
+    description: The writing state of the item.
+    enum:
+      - none
+      - little
+      - lot
+    example: none
+  created_at:
+    type: string
+    format: date-time
+    description: The date and time when the item was created.
+    example: "2023-11-11T20:22:49.521557+09:00"
+  updated_at:
+    type: string
+    format: date-time
+    description: The date and time when the item was last updated.
+    example: "2023-11-11T20:22:49.521565+09:00"
+  buyer:
+    type: string
+    nullable: true
+    description: The buyer of the item (if any).
+    example: null
+  comment_count:
+    type: integer
+    description: The number of comments on the item. Comments from users who have blocked each other are not included.
+    example: 2
