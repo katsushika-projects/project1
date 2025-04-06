@@ -28,3 +28,6 @@ sqlparse==0.4.4; python_version >= '3.5'
 typing-extensions==4.7.1; python_version < '3.11'
 urllib3==2.0.4; python_version >= '3.7'
 django-anymail[mailgun]
+firebase-admin==6.7.0
+fcm-django==2.2.1
+psycopg2-binary>=2.9

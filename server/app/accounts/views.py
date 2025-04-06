@@ -14,7 +14,6 @@ from rest_framework_simplejwt import exceptions, views
 from items.models import Item
 from transaction_messages.models import Message
 
-from .authentication import CookieJWTAuthentication
 from .models import Block
 from .serializers import UserSerializer
 
@@ -94,7 +93,6 @@ class JWTokenRefreshView(views.TokenRefreshView):
 
 
 class LogoutView(views.TokenBlacklistView):
-    authentication_classes = (CookieJWTAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):

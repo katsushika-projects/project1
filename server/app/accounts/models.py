@@ -40,6 +40,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=350,
         unique=True,
     )
+    
+    username = models.CharField(
+    max_length=150,
+    unique=True,
+    null=True,
+    blank=True,
+    verbose_name="ユーザー名"
+    )
+
     is_staff = models.BooleanField(
         verbose_name="管理サイトアクセス権限フラグ",
         default=False,

@@ -10,111 +10,49 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt import exceptions, views
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import AllowAny
+from django.contrib.auth import get_user_model
+from firebase_admin import auth as firebase_auth
 
 from items.models import Item
 from transaction_messages.models import Message
 
-from .authentication import CookieJWTAuthentication
 from .models import Block
 from .serializers import UserSerializer
 
 User = get_user_model()
 
 
-class UserListAPIView(ListAPIView):
-    queryset = User.objects.filter(is_active=True)
-    serializer_class = UserSerializer
+class FirebaseLoginView(APIView):
+    permission_classes = [AllowAny]  # ログイン前なので許可
 
+    def post(self, request):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return Response({"detail": "トークンが必要です"}, status=400)
 
-# 　JWTをcookieに持たせる
-class JWTokenObtainView(views.TokenObtainPairView):
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-
+        id_token = auth_header.split("Bearer ")[1]
         try:
-            serializer.is_valid(raise_exception=True)
-        except exceptions.TokenError as e:
-            raise exceptions.InvalidToken(e.args[0])
+            decoded_token = firebase_auth.verify_id_token(id_token)
+            firebase_email = decoded_token.get("email")
+        except Exception as e:
+            print(request.data)
+            return Response({"detail": f"Firebase認証に失敗: {str(e)}"}, status=401)
 
-        response = Response(serializer.validated_data, status=status.HTTP_200_OK)
-
-        # Cookieにトークンをセット
-        response.set_cookie(
-            "access_token",
-            serializer.validated_data["access"],
-            # 期限は3時間
-            max_age=60 * 60 * 3,
-            httponly=True,
-        )
-        response.set_cookie(
-            "refresh_token",
-            serializer.validated_data["refresh"],
-            # 期限は1週間
-            max_age=60 * 60 * 24 * 7,
-            httponly=True,
+        user, created = User.objects.get_or_create(
+            email=firebase_email,
+            defaults={"is_active": True},
         )
 
-        return response
-
-
-# JWTのリフレッシュ
-class JWTokenRefreshView(views.TokenRefreshView):
-    def post(self, request, *args, **kwargs):
-        # cookieからリフレッシュトークンを取得
-        refresh_token = request.COOKIES.get("refresh_token")
-        if refresh_token is None:
-            return Response({"detail": "No refresh"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # リクエストにリフレッシュトークンを含めなおす
-        request_data = request.data.copy()
-        request_data["refresh"] = refresh_token
-        serializer = self.get_serializer(data=request_data)
-
-        try:
-            serializer.is_valid(raise_exception=True)
-        except exceptions.TokenError as e:
-            raise exceptions.InvalidToken(e.args[0])
-
-        response = Response(serializer.validated_data, status=status.HTTP_200_OK)
-
-        response.set_cookie(
-            "access_token",
-            serializer.validated_data["access"],
-            max_age=60 * 60 * 3,
-            httponly=True,
-        )
-        response.set_cookie(
-            "refresh_token",
-            refresh_token,
-            max_age=60 * 60 * 24 * 7,
-            httponly=True,
-        )
-
-        return response
-
-
-class LogoutView(views.TokenBlacklistView):
-    authentication_classes = (CookieJWTAuthentication,)
-    permission_classes = (permissions.IsAuthenticated,)
-
-    def post(self, request, *args, **kwargs):
-        refresh_token = request.COOKIES.get("refresh_token")
-        if refresh_token is None:
-            return Response({"detail": "No refresh"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # リクエストにリフレッシュトークンを含めなおす
-        request.data["refresh"] = refresh_token
-
-        response = super().post(request, *args, **kwargs)
-
-        # トークンをCookieから削除
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
-
-        # 既に存在するresponseにdataを追加
-        response.data = {"detail": "Logged out"}
-
-        return response
+        # モバイルアプリ用：user IDだけ返すなど
+        return Response({
+            "uid": user.id,
+            "email": user.email,
+            "new_user": created
+        }, status=200)
 
 
 def get_csrf_token(request):

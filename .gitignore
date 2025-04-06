@@ -142,3 +142,8 @@ db/
 
 # db
 server/db/*
+
+# firebase
+serviceAccountKey.json
+server/app/firebase_key.json
+token_test.html
