@@ -147,3 +147,4 @@ server/db/*
 serviceAccountKey.json
 server/app/firebase_key.json
 token_test.html
+firebase_key.json
