@@ -136,14 +136,15 @@ REST_FRAMEWORK = {
     "DEFAULT_MAX_FILE_SIZE": 10 * 1024 * 1024,  # 最大ファイルサイズ (10MB)
 }
 
-CLIENT_URL = env("CLIENT_URL")
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True  # どのリクエストでも許可
-else:
-    CORS_ORIGIN_WHITELIST = [CLIENT_URL]  # ホワイトリストに設定したCLIENT_URL（今回はNode.js）のみリクエストを許可
-    CORS_ALLOWED_ORIGINS = [CLIENT_URL]
-# CSRFトークンの設定
-CSRF_TRUSTED_ORIGINS = [CLIENT_URL]
+CORS_ALLOW_ALL_ORIGINS = True
+# CLIENT_URL = env("CLIENT_URL")
+# if DEBUG:
+#       # どのリクエストでも許可
+# else:
+#     CORS_ORIGIN_WHITELIST = [CLIENT_URL]  # ホワイトリストに設定したCLIENT_URL（今回はNode.js）のみリクエストを許可
+#     CORS_ALLOWED_ORIGINS = [CLIENT_URL]
+# # CSRFトークンの設定
+# CSRF_TRUSTED_ORIGINS = [CLIENT_URL]
 
 
 SIMPLE_JWT = {
@@ -157,7 +158,7 @@ SIMPLE_JWT = {
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
 }
 
-CLIENT_SITE_NAME = env("CLIENT_SITE_NAME")
+# CLIENT_SITE_NAME = env("CLIENT_SITE_NAME")
 
 # FCM関連
 FIREBASE_APP = initialize_app()

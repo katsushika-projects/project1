@@ -28,7 +28,9 @@ COPY . /app/
 ENV PORT=8080
 
 # Firebase用（Cloud Secret Managerと一致させる）
-ENV GOOGLE_APPLICATION_CREDENTIALS="/secrets/firebase_key.json"
+ENV GOOGLE_APPLICATION_CREDENTIALS="/mnt/secret/firebase_key.json"
 
 # 本番用起動コマンド（Gunicorn）
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8080"]
+ENV PYTHONPATH=/app
+
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8080", "--access-logfile", "-", "--error-logfile", "-"]
