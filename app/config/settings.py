@@ -14,19 +14,21 @@ print("env", env)
 
 
 DEBUG = env.bool("IS_DEBUG", default=False)
+print("DEBUG", DEBUG)
 
 SECRET_KEY = env("DJANGO_SECRET_KEY")
+print("SECRET_KEY", SECRET_KEY)
 DB_ENGINE=env("DB_ENGINE", cast=str)
-DB_NAME=env("DB_NAME")
-DB_USER=env("DB_USER")
-DB_PASSWORD=env("DB_PASSWORD")
-DB_HOST=env("DB_HOST")
-DB_PORT=env("DB_PORT")
 print("DB_ENGINE", DB_ENGINE)
+DB_NAME=env("DB_NAME")
 print("DB_NAME", DB_NAME)
+DB_USER=env("DB_USER")
 print("DB_USER", DB_USER)
+DB_PASSWORD=env("DB_PASSWORD")
 print("DB_PASSWORD", DB_PASSWORD)
+DB_HOST=env("DB_HOST")
 print("DB_HOST", DB_HOST)
+DB_PORT=env("DB_PORT")
 print("DB_PORT", DB_PORT)
 
 DATABASES = {
