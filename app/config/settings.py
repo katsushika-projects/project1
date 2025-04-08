@@ -22,6 +22,12 @@ DB_USER=env("DB_USER")
 DB_PASSWORD=env("DB_PASSWORD")
 DB_HOST=env("DB_HOST")
 DB_PORT=env("DB_PORT")
+print("DB_ENGINE", DB_ENGINE)
+print("DB_NAME", DB_NAME)
+print("DB_USER", DB_USER)
+print("DB_PASSWORD", DB_PASSWORD)
+print("DB_HOST", DB_HOST)
+print("DB_PORT", DB_PORT)
 
 DATABASES = {
     "default": {
