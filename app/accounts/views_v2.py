@@ -60,8 +60,11 @@ def get_csrf_token(request):
 class UserViewSet(djoser_views.UserViewSet):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data)
-        serializer.is_valid(raise_exception=True)
+        # パスワードが設定されている場合のみ、current_password の検証を行う
+        if instance.has_usable_password():
+            serializer = self.get_serializer(instance, data=request.data)
+            serializer.is_valid(raise_exception=True)
+        # パスワード認証を使っていないユーザーの場合は検証スキップ
 
         # 関連データの更新・削除のため、"削除済みユーザー"（ダミーユーザー）を用意
         if not User.objects.filter(email="deleted@example.com").exists():
@@ -71,16 +74,13 @@ class UserViewSet(djoser_views.UserViewSet):
         # 関連するItemの処理
         user_items = Item.objects.filter(Q(seller=instance) | Q(buyer=instance)).distinct()
         for user_item in user_items:
-            # 取引中の商品があればアカウント削除は許可しない
             if user_item.listing_status == Item.ListingStatus.PURCHASED:
                 raise ValidationError(
                     detail="取引中の商品があるため、アカウントを削除できません"
                 )
             if user_item.seller == instance:
-                # 出品者の場合は、その商品を削除
                 user_item.delete()
             elif user_item.buyer == instance:
-                # 購入者の場合は、ダミーユーザーに再割り当て
                 user_item.buyer = deleted_user
                 user_item.save()
 
@@ -90,22 +90,20 @@ class UserViewSet(djoser_views.UserViewSet):
             user_message.user = deleted_user
             user_message.save()
 
-        # Firebaseのユーザーも削除する
+        # Firebase のユーザーも削除する
         try:
-            # Firebase上のユーザー情報はメールアドレスで取得
             firebase_user = firebase_auth.get_user_by_email(instance.email)
             firebase_auth.delete_user(firebase_user.uid)
         except Exception as e:
-            # Firebase側の削除に失敗した場合は、エラーを返して以降の削除処理を中断
             raise ValidationError(detail=f"Firebaseのユーザー削除に失敗: {str(e)}")
 
         # ログイン中のユーザーの場合、セッションからもログアウト
         if instance == request.user:
             utils.logout_user(self.request)
 
-        # DB上からユーザーを削除
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 
 class UserDetailAPIView(APIView):
