@@ -29,6 +29,15 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    
+    firebase_uid = models.CharField(
+    max_length=128,
+    unique=True,
+    null=True,
+    blank=True,
+    verbose_name="Firebase UID",
+    )
+
     id = models.UUIDField(
         verbose_name="ユーザーID",
         primary_key=True,
