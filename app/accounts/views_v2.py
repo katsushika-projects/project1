@@ -35,17 +35,12 @@ class FirebaseLoginView(APIView):
             decoded_token = firebase_auth.verify_id_token(id_token)
             firebase_email = decoded_token.get("email")
         except Exception as e:
-            print(request.data)
             return Response({"detail": f"Firebase認証に失敗: {str(e)}"}, status=401)
-
-        print(firebase_email)
 
         user, created = User.objects.get_or_create(
             email=firebase_email,
             defaults={"is_active": True},
         )
-        print(user)
-        print(user.email)
 
         return Response({
             "uid": user.id,
