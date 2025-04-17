@@ -38,22 +38,18 @@ class FirebaseLoginView(APIView):
             print(request.data)
             return Response({"detail": f"Firebase認証に失敗: {str(e)}"}, status=401)
 
+        print(firebase_email)
+
         user, created = User.objects.get_or_create(
-            uid=decoded_token.get("user_id"),
-            defaults={
-                "email": firebase_email,
-                "is_active": True,
-            },
+            email=firebase_email,
+            defaults={"is_active": True},
         )
-        # emailが変更されていたら上書き（例：ユーザーがGoogleでアカウントに別のemailを設定した場合）
-        if user.email != firebase_email:
-            user.email = firebase_email
-            user.save()
+        print(user)
+        print(user.email)
 
         return Response({
             "uid": user.id,
             "email": user.email,
-            "new_user": created
         }, status=200)
 
 
