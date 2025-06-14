@@ -120,7 +120,7 @@ USE_TZ = True
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 # ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-
+print("ALLOWED_HOSTS", ALLOWED_HOSTS)
 
 # STATIC_URL = "static/"
 # STATIC_ROOT = env("STATIC_ROOT", default=os.path.join(BASE_DIR, "static"))
@@ -179,9 +179,12 @@ FIREBASE_APP = initialize_app()
 import os
 from google.oauth2 import service_account
 
+# ローカル用
 # GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
 #     os.path.join(BASE_DIR, 'mnt/storage-secret/storage-key')
 # )
+
+# 本番用
 GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
     '/mnt/storage-secret/storage-key'
 )
