@@ -15,7 +15,7 @@ DEBUG = env.bool("IS_DEBUG", default=False)
 print("DEBUG", DEBUG)
 
 SECRET_KEY = env("DJANGO_SECRET_KEY")
-print("SECRET_KEY", SECRET_KEY)  
+print("SECRET_KEY", SECRET_KEY)
 DB_ENGINE=env("DB_ENGINE", cast=str)
 print("DB_ENGINE", DB_ENGINE)
 DB_NAME=env("DB_NAME")
@@ -128,8 +128,8 @@ print("ALLOWED_HOSTS", ALLOWED_HOSTS)
 # MEDIA_URL = "media/"
 # MEDIA_ROOT = env("MEDIA_ROOT", default=os.path.join(BASE_DIR, "media"))
 
-# STATIC_ROOT="./static"
-# MEDIA_ROOT="./media"
+STATIC_ROOT="./static"
+MEDIA_ROOT="./media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -188,8 +188,7 @@ from google.oauth2 import service_account
 GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
     '/mnt/storage-secret/storage-key'
 )
-print(GS_CREDENTIALS)
-
+print("GS_CREDENTIALS", GS_CREDENTIALS)
 
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 
@@ -199,8 +198,8 @@ GS_BUCKET_NAME = 'uniboo-strage'
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 MEDIA_URL = env("MEDIA_URL")
