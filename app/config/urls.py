@@ -21,6 +21,7 @@ urlpatterns = [
     path("", include("terms_and_conditions.urls")),
     path("api/devices/", FCMDeviceAuthorizedViewSet.as_view({"post": "create"}), name="create_fcm_device"),
     path("api/v2/devices/", FCMDeviceAuthorizedViewSet.as_view({"post": "create"}), name="create_fcm_device"),
+    path("api/", include("ping.urls")),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

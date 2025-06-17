@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "terms_and_conditions",
     "transaction_messages",
     'storages',
+    "ping",
 ]
 
 MIDDLEWARE = [
@@ -193,13 +194,13 @@ STATIC_URL = '/static/'
 MEDIA_URL = env("MEDIA_URL")
 
 
-# ローカル用
-# GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-#     os.path.join(BASE_DIR, 'mnt/storage-secret/storage-key')
-# )
+# # ローカル用
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+    os.path.join(BASE_DIR, 'mnt/storage-secret/storage-key')
+)
 
 # # 本番用
-GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    '/mnt/storage-secret/storage-key'
-)
+# GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+#     '/mnt/storage-secret/storage-key'
+# )
 print("GS_CREDENTIALS", GS_CREDENTIALS)
