@@ -112,7 +112,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 LANGUAGE_CODE = "ja"
 TIME_ZONE = "Asia/Tokyo"
 USE_I18N = True
@@ -179,17 +178,6 @@ FIREBASE_APP = initialize_app()
 import os
 from google.oauth2 import service_account
 
-# ローカル用
-# GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-#     os.path.join(BASE_DIR, 'mnt/storage-secret/storage-key')
-# )
-
-# 本番用
-GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    '/mnt/storage-secret/storage-key'
-)
-print("GS_CREDENTIALS", GS_CREDENTIALS)
-
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 
 STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
@@ -203,3 +191,15 @@ STATIC_URL = '/static/'
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 MEDIA_URL = env("MEDIA_URL")
+
+
+# ローカル用
+# GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+#     os.path.join(BASE_DIR, 'mnt/storage-secret/storage-key')
+# )
+
+# # 本番用
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+    '/mnt/storage-secret/storage-key'
+)
+print("GS_CREDENTIALS", GS_CREDENTIALS)
