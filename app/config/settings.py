@@ -195,12 +195,12 @@ MEDIA_URL = env("MEDIA_URL")
 
 
 # # ローカル用
-GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    os.path.join(BASE_DIR, 'mnt/storage-secret/storage-key')
-)
-
-# # 本番用
 # GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-#     '/mnt/storage-secret/storage-key'
+#     os.path.join(BASE_DIR, 'mnt/storage-secret/storage-key')
 # )
+
+# 本番用
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+    '/mnt/storage-secret/storage-key'
+)
 print("GS_CREDENTIALS", GS_CREDENTIALS)
